@@ -52,6 +52,21 @@
             border: 1px solid var(--border-ui);
         }
 
+        /* Dark mode: Tailwind bg-slate-50 hardcoded fix */
+        [data-theme="dark"] .syllabus-topic-row {
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
+        }
+        [data-theme="dark"] .syllabus-topic-row.done {
+            background-color: #052e16 !important;
+            color: #4ade80 !important;
+        }
+
+        /* Chart.js legend + tick text dark mode */
+        [data-theme="dark"] canvas {
+            color-scheme: dark;
+        }
+
         /* 📱 CRITICAL MOBILE ONLY RE-LAYOUT (Bypasses Desktop Mode Constraint Permanently) */
         @media (max-width: 768px) {
             .app-container {
@@ -144,7 +159,7 @@
                 </div>
                 
                 <div class="versus-flex-frame flex items-center justify-between gap-6 py-2">
-                    <div class="versus-player-card flex-1 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-[var(--border-ui)]">
+                    <div class="versus-player-card flex-1 p-4 rounded-xl border border-[var(--border-ui)]" style="background-color:var(--bg-primary)">
                         <p class="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">You (Focus Core)</p>
                         <h4 id="identity-your-live-name" class="text-lg font-black mt-0.5 text-indigo-500">Warrior</h4>
                         <div id="versus-your-time-display" class="text-3xl font-black tracking-tight mt-2 text-[var(--text-main)]">0 Mins</div>
@@ -152,7 +167,7 @@
 
                     <div class="text-center font-black text-xl text-slate-400 select-none">VS</div>
 
-                    <div class="versus-player-card flex-1 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-[var(--border-ui)] text-right">
+                    <div class="versus-player-card flex-1 p-4 rounded-xl border border-[var(--border-ui)] text-right" style="background-color:var(--bg-primary)">
                         <p class="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Study Buddy</p>
                         <h4 id="identity-buddy-live-name" class="text-lg font-black mt-0.5 text-rose-500">Competitor</h4>
                         <div id="versus-buddy-time-display" class="text-3xl font-black tracking-tight mt-2 text-[var(--text-main)]">0 Mins</div>
@@ -550,7 +565,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 }, color: '#64748b' } } }
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 }, color: document.documentElement.dataset.theme === 'dark' ? '#94a3b8' : '#64748b' } } }
                 }
             });
 
@@ -608,8 +623,8 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: { min: 0, max: 100 },
-                        x: { grid: { display: false } }
+                        y: { min: 0, max: 100, ticks: { color: document.documentElement.dataset.theme === 'dark' ? '#94a3b8' : '#64748b' }, grid: { color: document.documentElement.dataset.theme === 'dark' ? '#1e293b' : '#f1f5f9' } },
+                        x: { grid: { display: false }, ticks: { color: document.documentElement.dataset.theme === 'dark' ? '#94a3b8' : '#64748b' } }
                     },
                     plugins: { legend: { display: false } }
                 },
@@ -659,10 +674,11 @@
                     ? (last3[last3.length - 1] - last3[0]) >= 3 ? 'improving'
                     : (last3[0] - last3[last3.length - 1]) >= 3 ? 'declining' : 'stable'
                     : 'stable';
-                const verdict = avg >= 80 ? { text: 'Excellent 🏆', color: '#10b981', bg: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800' }
-                    : avg >= 70 ? { text: 'Good ✅', color: '#4f46e5', bg: 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800' }
-                    : avg >= 55 ? { text: 'Average ⚠️', color: '#f59e0b', bg: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800' }
-                    : { text: 'Needs Work 🔴', color: '#ef4444', bg: 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800' };
+                const isDark = document.documentElement.dataset.theme === 'dark';
+                const verdict = avg >= 80 ? { text: 'Excellent 🏆', color: '#10b981', bg: isDark ? 'border-emerald-800' : 'border-emerald-200', style: isDark ? 'background:#052e16' : 'background:#f0fdf4' }
+                    : avg >= 70 ? { text: 'Good ✅', color: '#4f46e5', bg: isDark ? 'border-indigo-800' : 'border-indigo-200', style: isDark ? 'background:#1e1b4b' : 'background:#eef2ff' }
+                    : avg >= 55 ? { text: 'Average ⚠️', color: '#f59e0b', bg: isDark ? 'border-amber-800' : 'border-amber-200', style: isDark ? 'background:#2d1f00' : 'background:#fffbeb' }
+                    : { text: 'Needs Work 🔴', color: '#ef4444', bg: isDark ? 'border-red-800' : 'border-red-200', style: isDark ? 'background:#2d0000' : 'background:#fef2f2' };
                 const trendIcon = trend === 'improving' ? '📈' : trend === 'declining' ? '📉' : '➡️';
                 stats[key] = { avg, trend, trendIcon, verdict, count: percs.length, best: Math.max(...percs), worst: Math.min(...percs) };
             });
@@ -696,9 +712,9 @@
                     scales: {
                         r: {
                             min: 0, max: 100,
-                            ticks: { stepSize: 25, font: { size: 9 }, color: '#94a3b8', backdropColor: 'transparent' },
-                            grid: { color: 'rgba(148,163,184,0.2)' },
-                            pointLabels: { font: { size: 12, weight: 'bold' }, color: '#64748b' }
+                            ticks: { stepSize: 25, font: { size: 9 }, color: document.documentElement.dataset.theme === 'dark' ? '#475569' : '#94a3b8', backdropColor: 'transparent' },
+                            grid: { color: document.documentElement.dataset.theme === 'dark' ? '#1e293b' : 'rgba(148,163,184,0.2)' },
+                            pointLabels: { font: { size: 12, weight: 'bold' }, color: document.documentElement.dataset.theme === 'dark' ? '#94a3b8' : '#64748b' }
                         }
                     },
                     plugins: { legend: { display: false } }
@@ -724,7 +740,7 @@
                         <div class="text-xs mt-2 text-[var(--text-muted)]">No data yet</div>
                     </div>`;
                 return `
-                    <div class="rounded-xl border p-3 ${s.verdict.bg}">
+                    <div class="rounded-xl border p-3 ${s.verdict.bg}" style="${s.verdict.style}">
                         <div class="flex items-center justify-between mb-1">
                             <span class="text-xs font-black uppercase tracking-widest" style="color:${cfg.color}">${cfg.short}</span>
                             <span class="text-[10px] font-bold" style="color:${s.verdict.color}">${s.verdict.text}</span>
@@ -1478,12 +1494,12 @@
                     grandTotalTopicsCount++;
                     if (activeStateValue === 'DONE') totalCompletedDoneCount++;
 
-                    let blockBgStyleColor = "bg-slate-50 dark:bg-slate-900/30 text-[var(--text-main)]";
-                    if (activeStateValue === 'DONE') blockBgStyleColor = "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50";
+                    let blockBgStyleColor = "syllabus-topic-row";
+                    if (activeStateValue === 'DONE') blockBgStyleColor = "syllabus-topic-row done";
 
                     const safeTopicName = topicName.replace(/'/g, "\'");
                     markupHTMLBuffer += `
-                        <div class="flex items-center justify-between p-2.5 rounded-xl text-xs font-medium transition-colors ${blockBgStyleColor}">
+                        <div class="flex items-center justify-between p-2.5 rounded-xl text-xs font-medium transition-colors border border-[var(--border-ui)] ${blockBgStyleColor}" style="color:var(--text-main)">
                             <span class="flex-1 pr-2 tracking-wide">${topicName}</span>
                             <div class="flex items-center gap-1.5 shrink-0">
                                 <button onclick="toggleSyllabusTopicCheckboxState('${categoryKey}', '${safeTopicName}', '${activeStateValue}')" class="px-2 py-1 rounded bg-[var(--bg-card)] border border-[var(--border-ui)] font-bold text-[10px] uppercase hover:border-indigo-500 cursor-pointer transition-all duration-150">${activeStateValue === 'DONE' ? '✅ Done' : 'Mark Done'}</button>
