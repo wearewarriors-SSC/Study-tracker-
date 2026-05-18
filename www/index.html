@@ -1,0 +1,1930 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSC CGL Top 500 Focus Tracker & Sync Arena</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        /* 🌓 Professional Night Mode Architecture Core Variables */
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-ui: #e2e8f0;
+            --accent-glow: #4f46e5;
+            --accent-hover: #4338ca;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-ui: #334155;
+            --accent-glow: #6366f1;
+            --accent-hover: #4f46e5;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            font-family: system-ui, -apple-system, sans-serif;
+            transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .custom-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-ui);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .ui-input {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            border: 1px solid var(--border-ui);
+        }
+
+        /* Dark mode: Tailwind bg-slate-50 hardcoded fix */
+        [data-theme="dark"] .syllabus-topic-row {
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
+        }
+        [data-theme="dark"] .syllabus-topic-row.done {
+            background-color: #052e16 !important;
+            color: #4ade80 !important;
+        }
+
+        /* Chart.js legend + tick text dark mode */
+        [data-theme="dark"] canvas {
+            color-scheme: dark;
+        }
+
+        /* 📱 CRITICAL MOBILE ONLY RE-LAYOUT (Bypasses Desktop Mode Constraint Permanently) */
+        @media (max-width: 768px) {
+            .app-container {
+                padding: 0.5rem !important;
+            }
+            .dashboard-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+            .versus-flex-frame {
+                flex-direction: column !important;
+                gap: 1.25rem !important;
+            }
+            .versus-player-card {
+                width: 100% !important;
+                text-align: center;
+            }
+            .nav-tabs-scroll {
+                display: flex;
+                overflow-x: auto;
+                white-space: nowrap;
+                scrollbar-width: none;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 0.25rem;
+                border-bottom: 2px solid var(--border-ui);
+            }
+            .nav-tabs-scroll::-webkit-scrollbar {
+                display: none;
+            }
+            .timer-display-digits {
+                font-size: 3.75rem !important;
+                line-height: 1 !important;
+            }
+            .responsive-table-wrapper {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        /* Night Mode Floating Trigger Action Button */
+        .theme-toggle-fab {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background-color: var(--accent-glow);
+            color: #ffffff;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            z-index: 50;
+        }
+    </style>
+</head>
+<body class="min-h-screen antialiased pb-24">
+
+    <header class="w-full border-b border-[var(--border-ui)] bg-[var(--bg-card)] sticky top-0 z-40 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+                    <span class="text-white font-black text-xl">🚀</span>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-[var(--text-main)]">WARRIORS ARENA</h1>
+                    <p class="text-xs text-[var(--text-muted)]">Target CGL Top 500 Blueprint Matrix</p>
+                </div>
+            </div>
+            <div id="active-profile-identity-banner" class="hidden text-sm font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-lg border border-indigo-100 dark:border-indigo-900/60">
+                Logged as: <span id="identity-visual-name-anchor" class="font-black">User</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 mt-6 app-container">
+        
+        <div class="nav-tabs-scroll flex gap-2 border-b border-[var(--border-ui)] mb-6">
+            <button onclick="switchNavigationRouteTab('dashboard')" id="tab-btn-dashboard" class="px-5 py-3 font-bold text-sm border-b-2 border-indigo-600 text-indigo-600 transition-all duration-200 cursor-pointer">📊 Performance Matrix</button>
+            <button onclick="switchNavigationRouteTab('timer')" id="tab-btn-timer" class="px-5 py-3 font-bold text-sm border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all duration-200 cursor-pointer">⏱️ Deep Focus Timer</button>
+            <button onclick="switchNavigationRouteTab('mocks')" id="tab-btn-mocks" class="px-5 py-3 font-bold text-sm border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all duration-200 cursor-pointer">📝 Split Score Logger</button>
+            <button onclick="switchNavigationRouteTab('syllabus')" id="tab-btn-syllabus" class="px-5 py-3 font-bold text-sm border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all duration-200 cursor-pointer">📚 Target Syllabus</button>
+        </div>
+
+        <div id="view-panel-dashboard" class="space-y-6 block">
+            
+            <div class="custom-card p-6 border-l-4 border-indigo-500">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-base font-black text-[var(--text-muted)] tracking-wider uppercase">⚔️ Live Synchronized Battlegrounds</h3>
+                    <span class="flex h-2.5 w-2.5 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    </span>
+                </div>
+                
+                <div class="versus-flex-frame flex items-center justify-between gap-6 py-2">
+                    <div class="versus-player-card flex-1 p-4 rounded-xl border border-[var(--border-ui)]" style="background-color:var(--bg-primary)">
+                        <p class="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">You (Focus Core)</p>
+                        <h4 id="identity-your-live-name" class="text-lg font-black mt-0.5 text-indigo-500">Warrior</h4>
+                        <div id="versus-your-time-display" class="text-3xl font-black tracking-tight mt-2 text-[var(--text-main)]">0 Mins</div>
+                    </div>
+
+                    <div class="text-center font-black text-xl text-slate-400 select-none">VS</div>
+
+                    <div class="versus-player-card flex-1 p-4 rounded-xl border border-[var(--border-ui)] text-right" style="background-color:var(--bg-primary)">
+                        <p class="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Study Buddy</p>
+                        <h4 id="identity-buddy-live-name" class="text-lg font-black mt-0.5 text-rose-500">—</h4>
+                        <div id="versus-buddy-time-display" class="text-3xl font-black tracking-tight mt-2 text-[var(--text-main)]">0 Mins</div>
+                    </div>
+                </div>
+                
+                <div id="versus-battle-status-alert" class="mt-4 text-center text-sm font-bold bg-slate-100 dark:bg-slate-800/60 py-2 rounded-lg text-[var(--text-main)]">
+                    🤝 Establish cloud tracking connection vectors to parse analytics.
+                </div>
+            </div>
+
+            <div id="live-users-panel" class="custom-card p-4 border-l-4 border-emerald-500 hidden">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="flex h-2.5 w-2.5 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span></span>
+                    <h3 class="text-sm font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">🟢 Who is Studying Right Now</h3>
+                </div>
+                <div id="live-users-list" class="flex flex-wrap gap-2 text-xs font-bold text-[var(--text-muted)]">
+                    <span>Checking...</span>
+                </div>
+            </div>
+
+            <div class="dashboard-grid grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="custom-card p-6">
+                    <p class="text-xs font-black text-[var(--text-muted)] tracking-wider uppercase">📐 Today's Cumulative Study Volume</p>
+                    <h3 id="stat-metrics-total-study-hours" class="text-4xl font-black tracking-tight mt-2 text-indigo-600 dark:text-indigo-400">0.0 Hours</h3>
+                    <p class="text-xs mt-1 text-[var(--text-muted)]">Real-time sessions logs aggregate computation scale.</p>
+                </div>
+                <div class="custom-card p-6">
+                    <p class="text-xs font-black text-[var(--text-muted)] tracking-wider uppercase">🏆 Total Mock Tests Executed</p>
+                    <h3 id="stat-metrics-mock-count-index" class="text-4xl font-black tracking-tight mt-2 text-emerald-600 dark:text-emerald-400">0</h3>
+                    <p class="text-xs mt-1 text-[var(--text-muted)]">Tier 1 & Tier 2 single page multi-subject records.</p>
+                </div>
+                <div class="custom-card p-6">
+                    <p class="text-xs font-black text-[var(--text-muted)] tracking-wider uppercase">🎯 Syllabus Milestone Progress</p>
+                    <h3 id="stat-metrics-syllabus-percent-display" class="text-4xl font-black tracking-tight mt-2 text-amber-600 dark:text-amber-400">0%</h3>
+                    <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full mt-3 overflow-hidden">
+                        <div id="stat-metrics-syllabus-progress-bar" class="bg-amber-500 h-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="custom-card p-6 flex flex-col">
+                    <h4 class="text-sm font-bold mb-4 uppercase tracking-widest text-[var(--text-muted)]">📉 Subject Allocation Volumetric Timeline</h4>
+                    <div class="flex-1 min-h-[280px] flex items-center justify-center relative">
+                        <canvas id="canvas-analytics-study-allocation-chart"></canvas>
+                    </div>
+                </div>
+                <div class="custom-card p-6 flex flex-col">
+                    <h4 class="text-sm font-bold mb-4 uppercase tracking-widest text-[var(--text-muted)]">📈 Mock Assessment Growth Curve (Target Line 78%)</h4>
+                    <div class="flex-1 min-h-[280px] flex items-center justify-center relative">
+                        <canvas id="canvas-analytics-mock-trajectory-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="custom-card p-6">
+                <div class="flex items-center justify-between mb-4 border-b border-[var(--border-ui)] pb-3">
+                    <div>
+                        <h4 class="text-sm font-black uppercase tracking-widest text-[var(--text-muted)]">🎯 Subject-wise Mock Performance Analyser</h4>
+                        <p class="text-xs text-[var(--text-muted)] mt-0.5">Based on all your mock test scores — avg %, trend & verdict for each subject.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="flex flex-col">
+                        <h5 class="text-xs font-bold uppercase text-[var(--text-muted)] mb-3 tracking-widest">📡 Radar — Performance by Subject</h5>
+                        <div class="flex-1 min-h-[260px] flex items-center justify-center">
+                            <canvas id="canvas-subject-radar-chart"></canvas>
+                        </div>
+                    </div>
+                    <div id="subject-performance-cards-grid" class="grid grid-cols-2 gap-3 content-start">
+                        <div class="col-span-2 text-xs text-[var(--text-muted)] text-center py-8">No mock data yet. Submit a mock to see performance.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-panel-timer" class="space-y-6 hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 dashboard-grid">
+                
+                <div class="custom-card p-6 space-y-4">
+                    <h3 class="text-base font-black border-b border-[var(--border-ui)] pb-2">⚙️ Calibration Parameters</h3>
+                    
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-[var(--text-muted)] mb-1">Choose Focus Session Time</label>
+                        <select id="pomodoro-session-selector" class="w-full p-2.5 rounded-lg ui-input font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                            <option value="25" selected>25 Minutes (Standard Pomodoro)</option>
+                            <option value="30">30 Minutes (Deep Focus Cycle)</option>
+                            <option value="35">35 Minutes</option>
+                            <option value="40">40 Minutes</option>
+                            <option value="45">45 Minutes (Advanced Power Block)</option>
+                            <option value="50">50 Minutes</option>
+                            <option value="55">55 Minutes</option>
+                            <option value="60">60 Minutes (Extreme Hyperfocus)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-[var(--text-muted)] mb-1">Long Break Trigger Threshold</label>
+                        <select id="pomodoro-long-break-trigger" class="w-full p-2.5 rounded-lg ui-input font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                            <option value="0">No Long Break (Continuous)</option>
+                            <option value="3">After 3 Cycles (Intense Mode)</option>
+                            <option value="4" selected>After 4 Cycles (Standard Block)</option>
+                            <option value="6">After 6 Cycles (Marathon Mode)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-[var(--text-muted)] mb-1">Active Target Domain Subject</label>
+                        <select id="pomodoro-subject-dropdown" class="w-full p-2.5 rounded-lg ui-input font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                            </select>
+                    </div>
+
+                    <div class="pt-2 border-t border-[var(--border-ui)]">
+                        <label class="block text-xs font-bold uppercase text-[var(--text-muted)] mb-1">➕ Add Custom Domain Subject</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="input-custom-subject-name" placeholder="e.g., Static GK Capsule" class="flex-1 p-2 rounded-lg ui-input text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            <button onclick="executeAddCustomSubjectPipeline()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-sm cursor-pointer transition-colors duration-150">Add</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="custom-card p-6 md:col-span-2 flex flex-col items-center justify-center text-center space-y-6 min-h-[380px] relative overflow-hidden">
+                    <div id="pomodoro-state-badge" class="px-4 py-1.5 rounded-full text-xs font-black bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900 uppercase tracking-widest animate-pulse">
+                        🎯 FOCUS ENGINE READY
+                    </div>
+                    
+                    <div class="timer-display-digits text-6xl md:text-7xl font-black font-mono tracking-tight tabular-nums text-[var(--text-main)]">
+                        <span id="timer-display-minutes">25</span>:<span id="timer-display-seconds">00</span>
+                    </div>
+
+                    <div class="flex items-center gap-3 w-full max-w-xs flex-wrap">
+                        <button id="btn-pomodoro-primary-toggle" onclick="togglePomodoroEngineState()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-sm transition-all duration-150 shadow-md cursor-pointer uppercase tracking-wider">Start Block</button>
+                        <button id="btn-pomodoro-reset-kill" onclick="resetPomodoroEngineState()" class="px-4 py-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-[var(--text-main)] font-bold rounded-xl text-sm transition-all duration-150 cursor-pointer">Reset</button>
+                    </div>
+                    <button id="btn-pomodoro-done-early" onclick="submitEarlySessionCompletion()" class="hidden w-full max-w-xs py-3 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-xl text-sm transition-all duration-150 shadow-md cursor-pointer uppercase tracking-wider">✅ Done Early — Submit Session</button>
+
+                    <div class="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                        Completed Target Streaks: <span id="pomodoro-streak-counter-value" class="text-[var(--text-main)] font-black text-sm ml-1">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="custom-card p-6">
+                <h3 class="text-base font-black mb-4 border-b border-[var(--border-ui)] pb-2">📋 Comprehensive Historical Study Records</h3>
+                <div class="responsive-table-wrapper">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="border-b border-[var(--border-ui)] text-[var(--text-muted)] font-bold">
+                                <th class="py-3 px-2">Timestamp</th>
+                                <th class="py-3 px-2">Warrior Profile</th>
+                                <th class="py-3 px-2">Domain Subject</th>
+                                <th class="py-3 px-2">Duration Log</th>
+                                <th class="py-3 px-2 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body-focus-sessions-logs">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-panel-mocks" class="space-y-6 hidden">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 dashboard-grid">
+                
+                <div class="custom-card p-6 space-y-4">
+                    <h3 class="text-base font-black border-b border-[var(--border-ui)] pb-2">📝 Submit Mark Sheet</h3>
+                    
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-[var(--text-muted)] mb-1">Mock Type</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setMockExaminationTier('T1')" id="btn-tier-toggle-t1" class="py-2 font-black text-xs rounded-lg uppercase tracking-wider border border-indigo-600 bg-indigo-600 text-white transition-all duration-150 shadow-md cursor-pointer">Tier 1</button>
+                            <button onclick="setMockExaminationTier('T2')" id="btn-tier-toggle-t2" class="py-2 font-black text-xs rounded-lg uppercase tracking-wider border border-[var(--border-ui)] text-[var(--text-muted)] bg-[var(--bg-primary)] hover:text-[var(--text-main)] transition-all duration-150 shadow-md cursor-pointer">Tier 2</button>
+                            <button onclick="setMockExaminationTier('SEC')" id="btn-tier-toggle-sec" class="py-2 font-black text-xs rounded-lg uppercase tracking-wider border border-[var(--border-ui)] text-[var(--text-muted)] bg-[var(--bg-primary)] hover:text-[var(--text-main)] transition-all duration-150 shadow-md cursor-pointer">Sectional</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-[var(--text-muted)] mb-1">Mock Reference Identity Name</label>
+                        <input type="text" id="input-mock-provider-display-name" placeholder="e.g., Oliveboard Live Mock 43" class="w-full p-2.5 rounded-lg ui-input font-medium text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+
+                    <div id="tier-score-inputs-container" class="space-y-3 pt-2 border-t border-[var(--border-ui)]">
+                        </div>
+
+                    <div class="pt-4 border-t border-[var(--border-ui)] flex items-center justify-between">
+                        <div class="text-left">
+                            <p class="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Aggregate Cumulative Total</p>
+                            <div id="display-mock-live-computed-total-score" class="text-xl font-black text-[var(--text-main)] tracking-tight">0 / 200</div>
+                        </div>
+                        <button onclick="submitCompositeMockDataToCloud()" class="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs uppercase tracking-widest shadow-md cursor-pointer transition-colors duration-150">Commit Mark Sheet</button>
+                    </div>
+                </div>
+
+                <div class="custom-card p-6 md:col-span-2">
+                    <h3 class="text-base font-black mb-4 border-b border-[var(--border-ui)] pb-2">🏆 Performance Tracking Analytics Feed</h3>
+                    <div class="responsive-table-wrapper">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="border-b border-[var(--border-ui)] text-[var(--text-muted)] font-bold">
+                                    <th class="py-3 px-2">Mock Details Reference</th>
+                                    <th class="py-3 px-2">Warrior</th>
+                                    <th class="py-3 px-2">Tier</th>
+                                    <th class="py-3 px-2">Subject Wise Split Scores Matrix</th>
+                                    <th class="py-3 px-2">Aggregate</th>
+                                    <th class="py-3 px-2 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body-mock-sheets-logs">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-panel-syllabus" class="space-y-6 hidden">
+            <div class="custom-card p-6">
+                <div class="flex items-center justify-between border-b border-[var(--border-ui)] pb-4 mb-4">
+                    <div>
+                        <h3 class="text-base font-black">📚 Syllabus Content Milestone Tracker</h3>
+                        <p class="text-xs text-[var(--text-muted)]">Check segments to synchronize metrics tracking matrices dashboard calculations engine.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="input-new-syllabus-custom-topic-name" placeholder="e.g., Trigo Maxima Minima" class="p-2 rounded-lg ui-input text-xs focus:outline-none w-48">
+                        <select id="select-new-syllabus-category-target" class="p-2 rounded-lg ui-input text-xs focus:outline-none">
+                            <option value="QA">Quantitative Aptitude</option>
+                            <option value="EL">English Language</option>
+                            <option value="GI">Reasoning Intelligence</option>
+                            <option value="GA">General Awareness</option>
+                            <option value="CS">Computer Knowledge</option>
+                        </select>
+                        <button onclick="executeAddCustomSyllabusTopicPipeline()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg cursor-pointer transition-colors duration-150">Add Topic</button>
+                    </div>
+                </div>
+
+                <div id="syllabus-master-category-grid-box" class="grid grid-cols-1 md:grid-cols-2 gap-6 dashboard-grid">
+                    </div>
+            </div>
+        </div>
+
+    </main>
+
+    <button class="theme-toggle-fab w-14 h-14 rounded-full flex items-center justify-center text-xl cursor-pointer hover:scale-105 active:scale-95 transition-all duration-150 shadow-2xl" id="themeToggleButton" onclick="toggleSystemThemeModeConfiguration()">🌙</button>
+
+    <div id="edit-record-modal-shroud" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 hidden">
+        <div class="bg-[var(--bg-card)] rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 id="edit-modal-title" class="text-base font-black text-[var(--text-main)]">✏️ Edit Record</h3>
+                <button onclick="closeEditModal()" class="text-[var(--text-muted)] hover:text-[var(--text-main)] text-xl font-bold cursor-pointer">✕</button>
+            </div>
+            <div id="edit-modal-fields" class="space-y-3"></div>
+            <div class="flex gap-3 pt-2">
+                <button onclick="closeEditModal()" class="flex-1 py-2.5 rounded-xl border border-[var(--border-ui)] text-xs font-black uppercase text-[var(--text-muted)] cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800">Cancel</button>
+                <button onclick="saveEditedRecord()" class="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase cursor-pointer">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-credentials-setup-modal-shroud" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+        <div class="bg-[var(--bg-card)] border border-[var(--border-ui)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <div class="text-center">
+                <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto text-indigo-600 text-2xl font-black mb-2">🔐</div>
+                <h2 class="text-xl font-black text-[var(--text-main)]">Cloud Synchronization Link</h2>
+                <p class="text-xs text-[var(--text-muted)] mt-1">Provide your remote Supabase infrastructure access keys parameters baseline.</p>
+            </div>
+            
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-[11px] font-bold uppercase text-[var(--text-muted)] mb-1">Supabase REST Endpoint Web URL</label>
+                    <input type="text" id="setup-credentials-supabase-url" placeholder="https://xyz.supabase.co" class="w-full p-2.5 rounded-lg ui-input font-medium text-sm focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold uppercase text-[var(--text-muted)] mb-1">Supabase Client Public Anon API Key Token</label>
+                    <input type="text" id="setup-credentials-supabase-anon-key" placeholder="eyJhbGciOi..." class="w-full p-2.5 rounded-lg ui-input font-medium text-sm focus:outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <div class="col-span-2">
+                        <label class="block text-[11px] font-bold uppercase text-[var(--text-muted)] mb-1">Your Identity Profile Name (Username)</label>
+                        <input type="text" id="setup-credentials-user-profile-name" placeholder="e.g., Ajay" class="w-full p-2.5 rounded-lg ui-input font-bold text-sm focus:outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <button id="btn-establish-pipeline-trigger" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm rounded-xl transition-all duration-150 uppercase tracking-widest shadow-md cursor-pointer">Establish Pipeline</button>
+        </div>
+    </div>
+
+    <div id="ui-toast-notifications-delivery-stack-deck" class="fixed top-5 right-5 z-50 flex flex-col gap-2 w-full max-w-sm pointer-events-none"></div>
+
+    <script>
+        // Global State Core Parameters Mapping Matrix Registers Configuration
+        let supabaseClient = null;
+        let activeRouteTabId = 'dashboard';
+        let activeExaminationTier = 'T1';
+        
+        let studyAllocationChartInstance = null;
+        let mockTrajectoryChartInstance = null;
+        let subjectRadarChartInstance = null;
+
+        // Background Safe Multi-Threaded Architecture Web Worker Reference Pointer
+        let timerWebWorkerThread = null;
+        let nativeAudioContextRegistry = null;
+
+        const SUBJECTS_CORE_PALETTE = {
+            "Quantitative Aptitude": "#4f46e5",
+            "English Language": "#06b6d4",
+            "Reasoning Intelligence": "#ec4899",
+            "General Awareness": "#f59e0b",
+            "Current Affairs": "#10b981",
+            "Newspaper Analysis": "#8b5cf6",
+            "Book Reading": "#3b82f6",
+            "Calculation Practice": "#ef4444",
+            "Formula Revision": "#014737",
+            "Vocabulary Building": "#e11d48",
+            "Mocks Engineering": "#64748b"
+        };
+
+        const MASTER_SYLLABUS_DATA_DICTIONARY = {
+            "QA": [
+                "Percentage & Successive Fractions", "Profit, Loss & Discount Arrays", "Ratio, Proportion & Mixture Alligations",
+                "Time, Speed, Distance & Relative Motion", "Geometry Triangles, Circles & Coordinate Systems", 
+                "Algebra Polynomial Identities", "Trigonometry Heights, Distances & Maxima Minima", "Data Interpretation Bar, Pie & Line Graphs",
+                "Calculation Speed Drills & Tables Matrix"
+            ],
+            "EL": [
+                "Grammar Rules Subject-Verb Agreement", "Tenses & Conditional Clauses", "Active Passive Voices Transformation",
+                "Direct Indirect Narration Cascades", "Error Spotting & Sentence Improvement Blocks",
+                "Vocabulary High Frequency Synonyms/Antonyms", "One Word Substitutions & Idiom Phrases", "Reading Comprehension Strategy Check",
+                "Cloze Test Structural Context Elimination", "Para Jumbles Logical Chain Sequencing"
+            ],
+            "GI": [
+                "Analogy & Classification Matrices", "Coding-Decoding Alpha-Numeric Shifts", "Blood Relations Tree Mapping",
+                "Direction Sense Coordinate Operations", "Syllogism Venn Diagram Logical Sets", "Series Completion Missing Terms Check",
+                "Dice, Cube & Paper Folding Visual Layouts", "Matrix Coding & Counting Figures Scaling", "Critical Reasoning Statement Assumptions"
+            ],
+            "GA": [
+                "Ancient, Medieval & Modern Indian History", "Indian Constitution Articles & Amendment Structures",
+                "Physical, Economic & Political Geography Sets", "Macroeconomics & Five Year Planning Frameworks",
+                "Physics, Chemistry & Biology Core Concepts", "Static General Knowledge Capitals, Currencies & National Parks",
+                "Current Affairs Dynamic Monthly Capsules", "Editorial Analysis Daily Newspaper Drills"
+            ],
+            "CS": [
+                "Computer Fundamentals — Hardware, Software & OS Basics", "MS Office — Word, Excel, PowerPoint Shortcuts",
+                "Internet Concepts — Browsers, Protocols, Email & Security", "Networking Basics — LAN, WAN, IP, DNS, HTTP",
+                "Memory Types — RAM, ROM, Cache, Secondary Storage", "Input/Output Devices & Peripheral Units",
+                "Number Systems — Binary, Octal, Hexadecimal Conversions", "Database Concepts — DBMS, SQL Basics",
+                "Cybersecurity Threats — Virus, Malware, Phishing, Firewall", "Shortcut Keys & File Management Operations"
+            ]
+        };
+
+        function cleanSlateCanvasElementContext(canvasElementId) {
+            const currentElement = document.getElementById(canvasElementId);
+            if (!currentElement) return null;
+            const contextPointer = currentElement.getContext('2d');
+            contextPointer.clearRect(0, 0, currentElement.width, currentElement.height);
+            return contextPointer;
+        }
+
+        function recomputeAndRenderDashboardCharts(sessionLogsArray, mockSheetsLogsArray) {
+            const subjectDurationAccumulator = {};
+            sessionLogsArray.forEach(log => {
+                const subject = log.subject_name || log.subject || "Unmapped Domain";
+                subjectDurationAccumulator[subject] = (subjectDurationAccumulator[subject] || 0) + parseInt(log.duration || 0);
+            });
+
+            const studyLabels = Object.keys(subjectDurationAccumulator);
+            const studyData = Object.values(subjectDurationAccumulator);
+            const studyColors = studyLabels.map(label => SUBJECTS_CORE_PALETTE[label] || "#cbd5e1");
+
+            const studyCtx = cleanSlateCanvasElementContext('canvas-analytics-study-allocation-chart');
+            if (studyAllocationChartInstance) {
+                studyAllocationChartInstance.destroy();
+            }
+
+            if (studyLabels.length === 0) {
+                studyLabels.push("No Sessions Logged Today");
+                studyData.push(1);
+                studyColors.push("#e2e8f0");
+            }
+
+            studyAllocationChartInstance = new Chart(studyCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: studyLabels,
+                    datasets: [{
+                        data: studyData,
+                        backgroundColor: studyColors,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 }, color: document.documentElement.dataset.theme === 'dark' ? '#94a3b8' : '#64748b' } } }
+                }
+            });
+
+            const sortedMocks = [...mockSheetsLogsArray].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+            const mockLabels = sortedMocks.map((mock, idx) => mock.name || `Mock #${idx + 1}`);
+            const mockPercentages = sortedMocks.map(mock => {
+                const total = parseInt(mock.total || 0);
+                return total > 0 ? Math.round((parseInt(mock.score || 0) / total) * 100) : 0;
+            });
+
+            const mockCtx = cleanSlateCanvasElementContext('canvas-analytics-mock-trajectory-chart');
+            if (mockTrajectoryChartInstance) {
+                mockTrajectoryChartInstance.destroy();
+            }
+
+            const nativeTargetLinePlugin = {
+                id: 'nativeTargetLinePlugin',
+                afterDraw: (chart) => {
+                    const { ctx, chartArea: { left, right }, scales: { y } } = chart;
+                    const yPixelCoordinate = y.getPixelForValue(78);
+                    if (yPixelCoordinate >= chart.chartArea.top && yPixelCoordinate <= chart.chartArea.bottom) {
+                        ctx.save();
+                        ctx.strokeStyle = '#ef4444';
+                        ctx.lineWidth = 2;
+                        ctx.setLineDash([6, 4]);
+                        ctx.beginPath();
+                        ctx.moveTo(left, yPixelCoordinate);
+                        ctx.lineTo(right, yPixelCoordinate);
+                        ctx.stroke();
+                        ctx.fillStyle = '#ef4444';
+                        ctx.font = 'bold 10px sans-serif';
+                        ctx.fillText('🎯 500 RANK TARGET (78%+)', left + 10, yPixelCoordinate - 6);
+                        ctx.restore();
+                    }
+                }
+            };
+
+            mockTrajectoryChartInstance = new Chart(mockCtx, {
+                type: 'line',
+                data: {
+                    labels: mockLabels.length > 0 ? mockLabels : ["No Mocks Logged"],
+                    datasets: [{
+                        label: 'Your Aggregate Efficiency (%)',
+                        data: mockPercentages.length > 0 ? mockPercentages : [0],
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.05)',
+                        fill: true,
+                        tension: 0.25,
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#4f46e5'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { color: document.documentElement.dataset.theme === 'dark' ? '#94a3b8' : '#64748b' }, grid: { color: document.documentElement.dataset.theme === 'dark' ? '#1e293b' : '#f1f5f9' } },
+                        x: { grid: { display: false }, ticks: { color: document.documentElement.dataset.theme === 'dark' ? '#94a3b8' : '#64748b' } }
+                    },
+                    plugins: { legend: { display: false } }
+                },
+                plugins: [nativeTargetLinePlugin]
+            });
+
+            renderSubjectPerformanceAnalysis(mockSheetsLogsArray);
+        }
+
+        function renderSubjectPerformanceAnalysis(mockSheetsLogsArray) {
+            const SUBJECT_CONFIG = {
+                qa: { label: 'Quantitative Aptitude', max: { T1: 50, T2: 90, SEC: 50 }, color: '#4f46e5', short: 'QA' },
+                gi: { label: 'Reasoning Intelligence', max: { T1: 50, T2: 90, SEC: 50 }, color: '#ec4899', short: 'GI' },
+                el: { label: 'English Language',       max: { T1: 50, T2: 135, SEC: 50 }, color: '#06b6d4', short: 'EL' },
+                ga: { label: 'General Awareness',      max: { T1: 50, T2: 75, SEC: 50 }, color: '#f59e0b', short: 'GA' }
+            };
+
+            const subjectAccumulator = {};
+            Object.keys(SUBJECT_CONFIG).forEach(key => {
+                subjectAccumulator[key] = { scores: [], percentages: [] };
+            });
+
+            const sorted = [...mockSheetsLogsArray].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+            sorted.forEach(mock => {
+                const tier = mock.subject || 'T1'; 
+                Object.keys(SUBJECT_CONFIG).forEach(key => {
+                    const rawScore = mock[`${key}_score`];
+                    if (rawScore == null || rawScore === 0 && mock[`qa_score`] == null) return;
+                    if (rawScore == null) return;
+                    const maxForTier = SUBJECT_CONFIG[key].max[tier] || 50;
+                    const pct = Math.round((parseInt(rawScore) / maxForTier) * 100);
+                    subjectAccumulator[key].scores.push(parseInt(rawScore));
+                    subjectAccumulator[key].percentages.push(pct);
+                });
+            });
+
+            const stats = {};
+            Object.keys(SUBJECT_CONFIG).forEach(key => {
+                const percs = subjectAccumulator[key].percentages;
+                if (percs.length === 0) { stats[key] = null; return; }
+                const avg = Math.round(percs.reduce((a, b) => a + b, 0) / percs.length);
+                const last3 = percs.slice(-3);
+                const trend = last3.length >= 2
+                    ? (last3[last3.length - 1] - last3[0]) >= 3 ? 'improving'
+                    : (last3[0] - last3[last3.length - 1]) >= 3 ? 'declining' : 'stable'
+                    : 'stable';
+                const isDark = document.documentElement.dataset.theme === 'dark';
+                const verdict = avg >= 80 ? { text: 'Excellent 🏆', color: '#10b981', bg: isDark ? 'border-emerald-800' : 'border-emerald-200', style: isDark ? 'background:#052e16' : 'background:#f0fdf4' }
+                    : avg >= 70 ? { text: 'Good ✅', color: '#4f46e5', bg: isDark ? 'border-indigo-800' : 'border-indigo-200', style: isDark ? 'background:#1e1b4b' : 'background:#eef2ff' }
+                    : avg >= 55 ? { text: 'Average ⚠️', color: '#f59e0b', bg: isDark ? 'border-amber-800' : 'border-amber-200', style: isDark ? 'background:#2d1f00' : 'background:#fffbeb' }
+                    : { text: 'Needs Work 🔴', color: '#ef4444', bg: isDark ? 'border-red-800' : 'border-red-200', style: isDark ? 'background:#2d0000' : 'background:#fef2f2' };
+                const trendIcon = trend === 'improving' ? '📈' : trend === 'declining' ? '📉' : '➡️';
+                stats[key] = { avg, trend, trendIcon, verdict, count: percs.length, best: Math.max(...percs), worst: Math.min(...percs) };
+            });
+
+            const radarLabels = Object.values(SUBJECT_CONFIG).map(s => s.short);
+            const radarData = Object.keys(SUBJECT_CONFIG).map(k => stats[k]?.avg || 0);
+            const radarColors = Object.values(SUBJECT_CONFIG).map(s => s.color);
+
+            const radarCtx = document.getElementById('canvas-subject-radar-chart');
+            if (!radarCtx) return;
+            if (subjectRadarChartInstance) subjectRadarChartInstance.destroy();
+
+            subjectRadarChartInstance = new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: radarLabels,
+                    datasets: [{
+                        label: 'Avg Score %',
+                        data: radarData,
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79,70,229,0.15)',
+                        borderWidth: 2.5,
+                        pointBackgroundColor: radarColors,
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            min: 0, max: 100,
+                            ticks: { stepSize: 25, font: { size: 9 }, color: document.documentElement.dataset.theme === 'dark' ? '#475569' : '#94a3b8', backdropColor: 'transparent' },
+                            grid: { color: document.documentElement.dataset.theme === 'dark' ? '#1e293b' : 'rgba(148,163,184,0.2)' },
+                            pointLabels: { font: { size: 12, weight: 'bold' }, color: document.documentElement.dataset.theme === 'dark' ? '#94a3b8' : '#64748b' }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            const grid = document.getElementById('subject-performance-cards-grid');
+            if (!grid) return;
+
+            const hasAnyData = Object.values(stats).some(s => s !== null);
+            if (!hasAnyData) {
+                grid.innerHTML = `<div class="col-span-2 text-xs text-[var(--text-muted)] text-center py-8">No mock data yet. Submit a mock to see performance.</div>`;
+                return;
+            }
+
+            grid.innerHTML = Object.entries(SUBJECT_CONFIG).map(([key, cfg]) => {
+                const s = stats[key];
+                if (!s) return `
+                    <div class="rounded-xl border border-[var(--border-ui)] p-3 bg-[var(--bg-card)] opacity-50">
+                        <div class="text-xs font-black uppercase tracking-widest" style="color:${cfg.color}">${cfg.short}</div>
+                        <div class="text-xs text-[var(--text-muted)] mt-1">${cfg.label}</div>
+                        <div class="text-xs mt-2 text-[var(--text-muted)]">No data yet</div>
+                    </div>`;
+                return `
+                    <div class="rounded-xl border p-3 ${s.verdict.bg}" style="${s.verdict.style}">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-black uppercase tracking-widest" style="color:${cfg.color}">${cfg.short}</span>
+                            <span class="text-[10px] font-bold" style="color:${s.verdict.color}">${s.verdict.text}</span>
+                        </div>
+                        <div class="text-2xl font-black tabular-nums" style="color:${cfg.color}">${s.avg}%</div>
+                        <div class="text-[10px] text-[var(--text-muted)] mt-0.5">${cfg.label}</div>
+                        <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-700" style="width:${s.avg}%;background:${cfg.color}"></div>
+                        </div>
+                        <div class="flex justify-between mt-2 text-[10px] text-[var(--text-muted)] font-semibold">
+                            <span>${s.trendIcon} ${s.trend}</span>
+                            <span>Best: ${s.best}%</span>
+                        </div>
+                        <div class="text-[10px] text-[var(--text-muted)] mt-0.5">${s.count} mock${s.count !== 1 ? 's' : ''} · Worst: ${s.worst}%</div>
+                    </div>`;
+            }).join('');
+        }
+
+        function switchNavigationRouteTab(targetTabId) {
+            activeRouteTabId = targetTabId;
+            const tabs = ['dashboard', 'timer', 'mocks', 'syllabus'];
+            
+            tabs.forEach(tab => {
+                const panel = document.getElementById(`view-panel-${tab}`);
+                const btn = document.getElementById(`tab-btn-${tab}`);
+                if (tab === targetTabId) {
+                    panel.classList.remove('hidden');
+                    panel.classList.add('block');
+                    btn.classList.add('border-indigo-600', 'text-indigo-600');
+                    btn.classList.remove('border-transparent', 'text-[var(--text-muted)]');
+                } else {
+                    panel.classList.remove('block');
+                    panel.classList.add('hidden');
+                    btn.classList.remove('border-indigo-600', 'text-indigo-600');
+                    btn.classList.add('border-transparent', 'text-[var(--text-muted)]');
+                }
+            });
+
+            triggerMasterDatabaseSynchronizationRefresh();
+        }
+
+        function toggleSystemThemeModeConfiguration() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const targetTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', targetTheme);
+            localStorage.setItem('ssc_warriors_theme_config', targetTheme);
+            document.getElementById('themeToggleButton').innerText = targetTheme === 'dark' ? '☀️' : '🌙';
+        }
+
+        function initializeSystemThemeEngine() {
+            const cachedThemeSetting = localStorage.getItem('ssc_warriors_theme_config') || 'light';
+            document.documentElement.setAttribute('data-theme', cachedThemeSetting);
+            document.getElementById('themeToggleButton').innerText = cachedThemeSetting === 'dark' ? '☀️' : '🌙';
+        }
+
+        function toastNotificationPopup(messageString, typeSeverity = 'info') {
+            const toastContainerDeck = document.getElementById('ui-toast-notifications-delivery-stack-deck');
+            const notificationNode = document.createElement('div');
+            
+            const accentBorderColor = typeSeverity === 'error' ? 'border-rose-500 text-rose-600 dark:text-rose-400' : 'border-emerald-500 text-emerald-600 dark:text-emerald-400';
+            notificationNode.className = `p-4 rounded-xl shadow-xl bg-[var(--bg-card)] border-l-4 ${accentBorderColor} text-xs font-bold transition-all duration-300 transform translate-y-2 opacity-0 flex items-center justify-between pointer-events-auto`;
+            notificationNode.innerHTML = `<span>${messageString}</span><button onclick="this.parentElement.remove()" class="ml-4 font-black text-slate-400 hover:text-slate-600">×</button>`;
+            
+            toastContainerDeck.appendChild(notificationNode);
+            setTimeout(() => {
+                notificationNode.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+            setTimeout(() => {
+                notificationNode.classList.add('opacity-0', 'translate-y-[-4px]');
+                setTimeout(() => notificationNode.remove(), 300);
+            }, 4000);
+        }
+
+        function initializeNativeAudioPlaybackEngine() {
+            if (!nativeAudioContextRegistry) {
+                nativeAudioContextRegistry = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function fireNativeDigitalBeepAlertAlarm() {
+            try {
+                initializeNativeAudioPlaybackEngine();
+                if (nativeAudioContextRegistry.state === 'suspended') {
+                    nativeAudioContextRegistry.resume();
+                }
+
+                for (let idx = 0; idx < 4; idx++) {
+                    const schedulingOffsetTime = nativeAudioContextRegistry.currentTime + (idx * 0.25);
+                    const soundOscillatorNode = nativeAudioContextRegistry.createOscillator();
+                    const soundVolumeGainNode = nativeAudioContextRegistry.createGain();
+
+                    soundOscillatorNode.type = 'sine';
+                    soundOscillatorNode.frequency.setValueAtTime(987.77, schedulingOffsetTime); 
+                    soundVolumeGainNode.gain.setValueAtTime(0.4, schedulingOffsetTime);
+                    soundVolumeGainNode.gain.exponentialRampToValueAtTime(0.01, schedulingOffsetTime + 0.18);
+
+                    soundOscillatorNode.connect(soundVolumeGainNode);
+                    soundVolumeGainNode.connect(nativeAudioContextRegistry.destination);
+
+                    soundOscillatorNode.start(schedulingOffsetTime);
+                    soundOscillatorNode.stop(schedulingOffsetTime + 0.18);
+                }
+            } catch (err) {
+                console.error("Autoplay browser audio security engine check catch:", err?.message || err?.details || JSON.stringify(err));
+            }
+        }
+
+        function syncChronometerDisplayDigits(totalSecondsCountRemaining) {
+            const minDigits = Math.floor(totalSecondsCountRemaining / 60);
+            const secDigits = totalSecondsCountRemaining % 60;
+            document.getElementById('timer-display-minutes').innerText = minDigits.toString().padStart(2, '0');
+            document.getElementById('timer-display-seconds').innerText = secDigits.toString().padStart(2, '0');
+        }
+
+        function togglePomodoroEngineState() {
+            initializeNativeAudioPlaybackEngine();
+            const actionToggleButton = document.getElementById('btn-pomodoro-primary-toggle');
+            const activeTimerModeState = localStorage.getItem('pomodoro_engine_runtime_state') || 'STOPPED';
+
+            if (activeTimerModeState === 'RUNNING') {
+                if (timerWebWorkerThread) {
+                    timerWebWorkerThread.terminate();
+                }
+                localStorage.setItem('pomodoro_engine_runtime_state', 'STOPPED');
+                actionToggleButton.innerText = "Start Block";
+                document.getElementById('pomodoro-state-badge').innerText = "⏸️ POMODORO PAUSED";
+                document.getElementById('btn-pomodoro-done-early').classList.add('hidden');
+                stopLiveStudyAccumulator();
+            } else {
+                let remainingSeconds = parseInt(localStorage.getItem('pomodoro_seconds_counter_remaining'));
+                
+                if (isNaN(remainingSeconds) || remainingSeconds <= 0) {
+                    const sessionDurationConfigurationMinutes = parseInt(document.getElementById('pomodoro-session-selector').value || '25');
+                    remainingSeconds = sessionDurationConfigurationMinutes * 60;
+                }
+
+                const expectedTargetWallClockTimestamp = Date.now() + (remainingSeconds * 1000);
+                localStorage.setItem('pomodoro_target_wallclock_cutoff', expectedTargetWallClockTimestamp.toString());
+                localStorage.setItem('pomodoro_engine_runtime_state', 'RUNNING');
+                
+                actionToggleButton.innerText = "Pause Block";
+                const isStudyMode = (localStorage.getItem('pomodoro_active_session_mode') || 'STUDY') === 'STUDY';
+                if (isStudyMode) document.getElementById('btn-pomodoro-done-early').classList.remove('hidden');
+                if (isStudyMode) startLiveStudyAccumulator();
+                spawnContinuousWebWorkerCountdownLoop(expectedTargetWallClockTimestamp);
+            }
+        }
+
+        function spawnContinuousWebWorkerCountdownLoop(targetEndTimeEpochMs) {
+            if (timerWebWorkerThread) {
+                timerWebWorkerThread.terminate();
+            }
+
+            const inlineWorkerBlobScript = new Blob([`
+                let targetCutoffTimestamp = null;
+                self.onmessage = function(msg) {
+                    if (msg.data.command === 'START_LOOP') {
+                        targetCutoffTimestamp = msg.data.endTime;
+                        function processingLoopCheck() {
+                            const timeDeltaRemainingSeconds = Math.max(0, Math.round((targetCutoffTimestamp - Date.now()) / 1000));
+                            self.postMessage({ secondsRemaining: timeDeltaRemainingSeconds });
+                            if (timeDeltaRemainingSeconds > 0) {
+                                setTimeout(processingLoopCheck, 1000);
+                            }
+                        }
+                        processingLoopCheck();
+                    }
+                };
+            `], { type: 'application/javascript' });
+
+            timerWebWorkerThread = new Worker(URL.createObjectURL(inlineWorkerBlobScript));
+            timerWebWorkerThread.postMessage({ command: 'START_LOOP', endTime: targetEndTimeEpochMs });
+
+            const dashboardBadge = document.getElementById('pomodoro-state-badge');
+            const activeInternalModeContext = localStorage.getItem('pomodoro_active_session_mode') || 'STUDY';
+            dashboardBadge.innerText = activeInternalModeContext === 'STUDY' ? "🎯 HYPERFOCUS WORK BLOCK ACTIVE" : "🍃 REST COMPLIANCE INTERVAL ACTIVE";
+
+            timerWebWorkerThread.onmessage = function(event) {
+                setTimeout(function() {
+                    const countSecondsLeft = event.data.secondsRemaining;
+                    localStorage.setItem('pomodoro_seconds_counter_remaining', countSecondsLeft.toString());
+                    syncChronometerDisplayDigits(countSecondsLeft);
+
+                    if (countSecondsLeft <= 0) {
+                        timerWebWorkerThread.terminate();
+                        executePomodoroCascadeTransitionSequence();
+                    }
+                }, 0);
+            };
+        }
+
+        async function executePomodoroCascadeTransitionSequence() {
+            fireNativeDigitalBeepAlertAlarm(); 
+            
+            const finishedMode = localStorage.getItem('pomodoro_active_session_mode') || 'STUDY';
+            const userProfileName = localStorage.getItem('ssc_user_profile_name') || 'Warrior';
+            
+            let nextSessionMode = 'REST';
+            let nextDurationMinutesInterval = 5; 
+
+            if (finishedMode === 'STUDY') {
+                const finishedSubjectDomain = document.getElementById('pomodoro-subject-dropdown').value || 'Quantitative Aptitude';
+                const plannedDurationMinutes = parseInt(document.getElementById('pomodoro-session-selector').value || '25');
+
+                if (supabaseClient) {
+                    try {
+                        const { error } = await supabaseClient
+                            .from('sessions')
+                            .insert([{ user_name: userProfileName, duration: plannedDurationMinutes, subject: finishedSubjectDomain, subject_name: finishedSubjectDomain, note: 'Automated Pomodoro Loop Commit Script' }]);
+                        
+                        if (!error) {
+                            toastNotificationPopup(`Focus Session Logged Successfully for ${finishedSubjectDomain}!`);
+                        } else {
+                            throw error;
+                        }
+                    } catch (err) {
+                        console.error("Cloud database write stream failed:", err?.message || err?.details || JSON.stringify(err));
+                        toastNotificationPopup("Database push offline.", "error");
+                    }
+                }
+
+                let totalCompletedStreaks = parseInt(localStorage.getItem('pomodoro_completed_streaks_index') || '0') + 1;
+                localStorage.setItem('pomodoro_completed_streaks_index', totalCompletedStreaks.toString());
+                document.getElementById('pomodoro-streak-counter-value').innerText = totalCompletedStreaks;
+
+                const breakThresholdConfiguration = parseInt(document.getElementById('pomodoro-long-break-trigger').value || '4');
+
+                if (breakThresholdConfiguration > 0 && totalCompletedStreaks % breakThresholdConfiguration === 0) {
+                    nextSessionMode = 'LONG_REST';
+                    nextDurationMinutesInterval = 15; 
+                    toastNotificationPopup("Excellent milestone loop hit! Take a 15-minute long restoration block.");
+                } else {
+                    nextSessionMode = 'REST';
+                    nextDurationMinutesInterval = 5; 
+                    toastNotificationPopup("Study session finished! 5-Minute short break initialized automatically.");
+                }
+            } else {
+                nextSessionMode = 'STUDY';
+                nextDurationMinutesInterval = parseInt(document.getElementById('pomodoro-session-selector').value || '25');
+                toastNotificationPopup("Break time elapsed! High-concentration study session block initialized.");
+            }
+
+            localStorage.setItem('pomodoro_active_session_mode', nextSessionMode);
+            localStorage.setItem('pomodoro_seconds_counter_remaining', (nextDurationMinutesInterval * 60).toString());
+            localStorage.setItem('pomodoro_engine_runtime_state', 'STOPPED');
+
+            syncChronometerDisplayDigits(nextDurationMinutesInterval * 60);
+            const badge = document.getElementById('pomodoro-state-badge');
+            const startBtn = document.getElementById('btn-pomodoro-primary-toggle');
+            if (nextSessionMode === 'STUDY') {
+                badge.innerText = '🎯 BREAK DONE — Press Start to Study';
+                startBtn.innerText = 'Start Block';
+                document.getElementById('btn-pomodoro-done-early').classList.add('hidden');
+                stopLiveStudyAccumulator();
+            } else {
+                const postTransitionTargetWallclockTimestamp = Date.now() + (nextDurationMinutesInterval * 60 * 1000);
+                localStorage.setItem('pomodoro_target_wallclock_cutoff', postTransitionTargetWallclockTimestamp.toString());
+                setTimeout(() => spawnContinuousWebWorkerCountdownLoop(postTransitionTargetWallclockTimestamp), 500);
+            }
+        }
+
+        async function submitEarlySessionCompletion() {
+            const activeMode = localStorage.getItem('pomodoro_active_session_mode') || 'STUDY';
+            if (activeMode !== 'STUDY') {
+                toastNotificationPopup("Early submit only works during a study block.", "error");
+                return;
+            }
+            const plannedMinutes = parseInt(document.getElementById('pomodoro-session-selector').value || '25');
+            const remainingSeconds = parseInt(localStorage.getItem('pomodoro_seconds_counter_remaining') || '0');
+            const elapsedMinutes = Math.max(1, Math.round((plannedMinutes * 60 - remainingSeconds) / 60));
+
+            if (elapsedMinutes < 1) {
+                toastNotificationPopup("Study at least 1 minute before submitting early.", "error");
+                return;
+            }
+
+            const subject = document.getElementById('pomodoro-subject-dropdown').value || 'Quantitative Aptitude';
+            const userProfileName = localStorage.getItem('ssc_user_profile_name') || 'Warrior';
+
+            if (supabaseClient) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('sessions')
+                        .insert([{ user_name: userProfileName, duration: elapsedMinutes, subject: subject, subject_name: subject, note: `Early Submission — ${elapsedMinutes}m of ${plannedMinutes}m planned` }]);
+                    if (!error) {
+                        toastNotificationPopup(`✅ ${elapsedMinutes} min logged for ${subject}!`);
+                    } else { throw error; }
+                } catch (err) {
+                    console.error("Early submit cloud write failed:", err?.message || err?.details || JSON.stringify(err));
+                    toastNotificationPopup("Database push offline.", "error");
+                }
+            } else {
+                toastNotificationPopup(`✅ ${elapsedMinutes} min session recorded locally.`);
+            }
+
+            let totalStreaks = parseInt(localStorage.getItem('pomodoro_completed_streaks_index') || '0') + 1;
+            localStorage.setItem('pomodoro_completed_streaks_index', totalStreaks.toString());
+            document.getElementById('pomodoro-streak-counter-value').innerText = totalStreaks;
+
+            resetPomodoroEngineState();
+            document.getElementById('btn-pomodoro-done-early').classList.add('hidden');
+        }
+
+        function resetPomodoroEngineState() {
+            if (timerWebWorkerThread) {
+                timerWebWorkerThread.terminate();
+            }
+            
+            localStorage.setItem('pomodoro_engine_runtime_state', 'STOPPED');
+            localStorage.setItem('pomodoro_active_session_mode', 'STUDY');
+            
+            const configuredSessionMinutes = parseInt(document.getElementById('pomodoro-session-selector').value || '25');
+            localStorage.setItem('pomodoro_seconds_counter_remaining', (configuredSessionMinutes * 60).toString());
+            
+            syncChronometerDisplayDigits(configuredSessionMinutes * 60);
+
+            const toggleButton = document.getElementById('btn-pomodoro-primary-toggle');
+            toggleButton.innerText = "Start Block";
+            document.getElementById('pomodoro-state-badge').innerText = "🎯 FOCUS ENGINE READY";
+            document.getElementById('btn-pomodoro-done-early').classList.add('hidden');
+            stopLiveStudyAccumulator();
+        }
+
+        function restoreResilientTimerStateOnLifecycleReload() {
+            const activeState = localStorage.getItem('pomodoro_engine_runtime_state') || 'STOPPED';
+            const counterLeftSecondsString = localStorage.getItem('pomodoro_seconds_counter_remaining');
+
+            if (activeState === 'RUNNING') {
+                const targetEndWallclockMs = parseInt(localStorage.getItem('pomodoro_target_wallclock_cutoff') || '0');
+                const remainingSecondsDelta = Math.round((targetEndWallclockMs - Date.now()) / 1000);
+
+                if (remainingSecondsDelta > 0) {
+                    localStorage.setItem('pomodoro_seconds_counter_remaining', remainingSecondsDelta.toString());
+                    syncChronometerDisplayDigits(remainingSecondsDelta);
+                    
+                    const actionButton = document.getElementById('btn-pomodoro-primary-toggle');
+                    actionButton.innerText = "Pause Block";
+                    
+                    spawnContinuousWebWorkerCountdownLoop(targetEndWallclockMs);
+                } else {
+                    localStorage.setItem('pomodoro_seconds_counter_remaining', '0');
+                    syncChronometerDisplayDigits(0);
+                    executePomodoroCascadeTransitionSequence(); 
+                }
+            } else {
+                if (counterLeftSecondsString) {
+                    syncChronometerDisplayDigits(parseInt(counterLeftSecondsString));
+                } else {
+                    const defaultMin = parseInt(document.getElementById('pomodoro-session-selector').value || '25');
+                    syncChronometerDisplayDigits(defaultMin * 60);
+                }
+            }
+
+            document.getElementById('pomodoro-streak-counter-value').innerText = localStorage.getItem('pomodoro_completed_streaks_index') || '0';
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && localStorage.getItem('pomodoro_engine_runtime_state') === 'RUNNING') {
+                restoreResilientTimerStateOnLifecycleReload();
+            }
+        });
+
+        async function fetchCustomSubjectsFromCloud() {
+            if (!supabaseClient) return [];
+            try {
+                const { data, error } = await supabaseClient.from('custom_subjects').select('subject_name');
+                if (error) throw error;
+                return data.map(item => item.subject_name);
+            } catch (err) {
+                console.error("Failed to load cloud custom subjects:", err?.message || err?.details || JSON.stringify(err));
+                return [];
+            }
+        }
+
+        async function populateSubjectsInterfaceDropdowns() {
+            const dropdownElement = document.getElementById('pomodoro-subject-dropdown');
+            if (!dropdownElement) return;
+
+            dropdownElement.innerHTML = '';
+            const coreSubjectKeys = Object.keys(SUBJECTS_CORE_PALETTE);
+            const cloudCustomSubjects = await fetchCustomSubjectsFromCloud();
+            const unifiedSubjectsAggregateSet = [...new Set([...coreSubjectKeys, ...cloudCustomSubjects])];
+
+            unifiedSubjectsAggregateSet.forEach(subjectName => {
+                const selectionOptionNode = document.createElement('option');
+                selectionOptionNode.value = subjectName;
+                selectionOptionNode.innerText = subjectName;
+                dropdownElement.appendChild(selectionOptionNode);
+            });
+        }
+
+        async function executeAddCustomSubjectPipeline() {
+            const rawInputField = document.getElementById('input-custom-subject-name');
+            const sanitizedSubjectText = rawInputField.value.trim();
+
+            if (!sanitizedSubjectText) {
+                toastNotificationPopup("Subject title context identifier missing.", "error");
+                return;
+            }
+
+            if (supabaseClient) {
+                try {
+                    const { error } = await supabaseClient.from('custom_subjects').insert([{ subject_name: sanitizedSubjectText }]);
+                    if (error) throw error;
+                    toastNotificationPopup(`Domain Subject [${sanitizedSubjectText}] pushed to cloud successfully.`);
+                    rawInputField.value = '';
+                    await populateSubjectsInterfaceDropdowns();
+                } catch (err) {
+                    console.error("Failed to save cloud subject:", err?.message || err?.details || JSON.stringify(err));
+                    toastNotificationPopup("Failed to store custom subject on cloud.", "error");
+                }
+            }
+        }
+
+        function setMockExaminationTier(targetTierStringCode) {
+            activeExaminationTier = targetTierStringCode;
+            const btnT1 = document.getElementById('btn-tier-toggle-t1');
+            const btnT2 = document.getElementById('btn-tier-toggle-t2');
+            const btnSec = document.getElementById('btn-tier-toggle-sec');
+            
+            const activeClass = 'py-2 font-black text-xs rounded-lg uppercase tracking-wider border border-indigo-600 bg-indigo-600 text-white transition-all duration-150 shadow-md cursor-pointer';
+            const inactiveClass = 'py-2 font-black text-xs rounded-lg uppercase tracking-wider border border-[var(--border-ui)] text-[var(--text-muted)] bg-[var(--bg-primary)] hover:text-[var(--text-main)] transition-all duration-150 shadow-md cursor-pointer';
+            
+            btnT1.className = targetTierStringCode === 'T1' ? activeClass : inactiveClass;
+            btnT2.className = targetTierStringCode === 'T2' ? activeClass : inactiveClass;
+            btnSec.className = targetTierStringCode === 'SEC' ? activeClass : inactiveClass;
+
+            generateCompositeScoreFormsLayout();
+        }
+
+        function generateCompositeScoreFormsLayout() {
+            const placementContainer = document.getElementById('tier-score-inputs-container');
+            if (!placementContainer) return;
+
+            placementContainer.innerHTML = '';
+
+            const tierLayoutBlueprints = {
+                "T1": [
+                    { id: "qa", name: "Quantitative Aptitude", max: 50 },
+                    { id: "gi", name: "Reasoning Intelligence", max: 50 },
+                    { id: "el", name: "English Language", max: 50 },
+                    { id: "ga", name: "General Awareness", max: 50 }
+                ],
+                "T2": [
+                    { id: "qa", name: "Mathematical Abilities (Sec I)", max: 90 },
+                    { id: "gi", name: "Reasoning & General Intellect", max: 90 },
+                    { id: "el", name: "English Lang & Comprehension", max: 135 },
+                    { id: "ga", name: "General Awareness Segment", max: 75 }
+                ],
+                "SEC": [
+                    { id: "qa", name: "Quantitative Aptitude", max: 50 },
+                    { id: "gi", name: "Reasoning Intelligence", max: 50 },
+                    { id: "el", name: "English Language", max: 50 },
+                    { id: "ga", name: "General Awareness", max: 50 }
+                ]
+            };
+
+            const activeBlueprintSet = tierLayoutBlueprints[activeExaminationTier];
+
+            activeBlueprintSet.forEach(inputFieldDescriptor => {
+                const row = document.createElement('div');
+                row.className = "flex items-center justify-between gap-4";
+                row.innerHTML = `
+                    <label class="text-xs font-semibold text-[var(--text-main)] flex-1">${inputFieldDescriptor.name}</label>
+                    <div class="flex items-center gap-2 w-32 justify-end">
+                        <input type="number" id="mock-segment-input-${inputFieldDescriptor.id}"
+                            oninput="clampMockInput(this, ${inputFieldDescriptor.max}); recalculateCompositeTotalScoreMetrics();"
+                            placeholder="0" min="0" max="${inputFieldDescriptor.max}"
+                            class="w-16 p-1.5 rounded-lg ui-input text-center text-xs font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500 tabular-nums">
+                        <span class="text-xs text-[var(--text-muted)] font-bold">/ ${inputFieldDescriptor.max}</span>
+                    </div>
+                `;
+                placementContainer.appendChild(row);
+            });
+
+            if (activeExaminationTier === 'T2') {
+                const csRow = document.createElement('div');
+                csRow.className = "flex items-center justify-between gap-4 pt-2 border-t border-[var(--border-ui)] mt-1";
+                csRow.innerHTML = `
+                    <div class="flex-1">
+                        <label class="text-xs font-semibold text-[var(--text-main)]">Computer Knowledge (Sec III)</label>
+                        <p class="text-[10px] text-amber-500 font-bold mt-0.5">⚠️ Qualifying Only — Not counted in score</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="cs-qual-pass" onclick="setCSQualifying('PASS')"
+                            class="px-3 py-1 rounded-lg text-[10px] font-black uppercase border border-emerald-500 bg-emerald-500 text-white cursor-pointer transition-all">Pass</button>
+                        <button id="cs-qual-fail" onclick="setCSQualifying('FAIL')"
+                            class="px-3 py-1 rounded-lg text-[10px] font-black uppercase border border-[var(--border-ui)] text-[var(--text-muted)] bg-[var(--bg-primary)] cursor-pointer transition-all">Fail</button>
+                    </div>
+                `;
+                placementContainer.appendChild(csRow);
+            }
+
+            if (activeExaminationTier === 'SEC') {
+                const infoRow = document.createElement('div');
+                infoRow.className = "text-[10px] text-indigo-500 font-bold pt-1 text-center";
+                infoRow.id = "sectional-dynamic-info-label";
+                infoRow.innerText = "📊 Fill any section. Max score scales dynamically by 50 per active subject.";
+                placementContainer.appendChild(infoRow);
+            }
+
+            recalculateCompositeTotalScoreMetrics(); 
+        }
+
+        function clampMockInput(inputEl, max) {
+            let val = parseInt(inputEl.value);
+            if (!isNaN(val) && val > max) {
+                inputEl.value = max;
+                inputEl.classList.add('border-red-500');
+                setTimeout(() => inputEl.classList.remove('border-red-500'), 1000);
+            }
+            if (!isNaN(val) && val < 0) inputEl.value = 0;
+        }
+
+        let csQualifyingState = 'PASS';
+        function setCSQualifying(state) {
+            csQualifyingState = state;
+            const passBtn = document.getElementById('cs-qual-pass');
+            const failBtn = document.getElementById('cs-qual-fail');
+            if (!passBtn || !failBtn) return;
+            const activeG = 'px-3 py-1 rounded-lg text-[10px] font-black uppercase border cursor-pointer transition-all';
+            passBtn.className = activeG + (state === 'PASS' ? ' border-emerald-500 bg-emerald-500 text-white' : ' border-[var(--border-ui)] text-[var(--text-muted)] bg-[var(--bg-primary)]');
+            failBtn.className = activeG + (state === 'FAIL' ? ' border-red-500 bg-red-500 text-white' : ' border-[var(--border-ui)] text-[var(--text-muted)] bg-[var(--bg-primary)]');
+        }
+
+        function recalculateCompositeTotalScoreMetrics() {
+            const activeTierSelection = activeExaminationTier;
+            const inputElementsQueryArray = document.querySelectorAll(`[id^="mock-segment-input-"]`);
+            
+            let accumulatedEarnedScore = 0;
+            let maximumTheoreticalTotalBaseline = 0;
+            let activeSecCount = 0;
+
+            inputElementsQueryArray.forEach(inputNode => {
+                const val = parseInt(inputNode.value);
+                if (!isNaN(val) && inputNode.value !== "") {
+                    accumulatedEarnedScore += val;
+                    if (activeTierSelection === 'SEC') {
+                        activeSecCount++;
+                    }
+                }
+            });
+
+            if (activeTierSelection === 'T1') {
+                maximumTheoreticalTotalBaseline = 200;
+            } else if (activeTierSelection === 'T2') {
+                maximumTheoreticalTotalBaseline = 390;
+            } else if (activeTierSelection === 'SEC') {
+                maximumTheoreticalTotalBaseline = activeSecCount > 0 ? activeSecCount * 50 : 50;
+                
+                const infoLabel = document.getElementById('sectional-dynamic-info-label');
+                if (infoLabel) {
+                    infoLabel.innerText = `🎯 Scaling Baseline: ${activeSecCount} Subject(s) Active (${maximumTheoreticalTotalBaseline} Marks Max)`;
+                }
+            }
+
+            document.getElementById('display-mock-live-computed-total-score').innerText = `${accumulatedEarnedScore} / ${maximumTheoreticalTotalBaseline}`;
+        }
+
+        async function submitCompositeMockDataToCloud() {
+            const rawReferenceInputField = document.getElementById('input-mock-provider-display-name');
+            const sanitizedMockReferenceTitle = rawReferenceInputField.value.trim();
+            const currentActiveUserProfile = localStorage.getItem('ssc_user_profile_name') || 'Warrior';
+
+            if (!sanitizedMockReferenceTitle) {
+                toastNotificationPopup("Mock Reference Identity Name descriptor missing.", "error"); 
+                return;
+            }
+
+            const qaInput = document.getElementById('mock-segment-input-qa');
+            const giInput = document.getElementById('mock-segment-input-gi');
+            const elInput = document.getElementById('mock-segment-input-el');
+            const gaInput = document.getElementById('mock-segment-input-ga');
+
+            const qaMarks = (qaInput && qaInput.value !== "") ? parseInt(qaInput.value) : null;
+            const giMarks = (giInput && giInput.value !== "") ? parseInt(giInput.value) : null;
+            const elMarks = (elInput && elInput.value !== "") ? parseInt(elInput.value) : null;
+            const gaMarks = (gaInput && gaInput.value !== "") ? parseInt(gaInput.value) : null;
+
+            const inputs = document.querySelectorAll('[id^="mock-segment-input-"]');
+            for (const inp of inputs) {
+                if (inp.value === "") continue;
+                const val = parseInt(inp.value) || 0;
+                const max = parseInt(inp.max) || 0;
+                if (val > max) {
+                    toastNotificationPopup(`Score cannot exceed maximum marks (${max})`, "error");
+                    inp.focus();
+                    return;
+                }
+            }
+
+            let aggregateCumulativeScore, totalScaleMaximumBaseline;
+            if (activeExaminationTier === 'SEC') {
+                const scoresList = [qaMarks, giMarks, elMarks, gaMarks].filter(v => v !== null);
+                const filledCount = scoresList.length;
+                
+                if (filledCount === 0) {
+                    toastNotificationPopup("Please enter marks in at least one subject row.", "error");
+                    return;
+                }
+                
+                aggregateCumulativeScore = scoresList.reduce((a, b) => a + b, 0);
+                totalScaleMaximumBaseline = 50 * filledCount;
+            } else {
+                aggregateCumulativeScore = (qaMarks || 0) + (giMarks || 0) + (elMarks || 0) + (gaMarks || 0);
+                totalScaleMaximumBaseline = activeExaminationTier === 'T1' ? 200 : 390;
+            }
+
+            if (supabaseClient) {
+                try {
+                    const insertPayload = {
+                        user_name: currentActiveUserProfile,
+                        name: sanitizedMockReferenceTitle,
+                        subject: activeExaminationTier, 
+                        score: aggregateCumulativeScore,
+                        total: totalScaleMaximumBaseline,
+                        qa_score: qaMarks !== null ? qaMarks : 0,
+                        gi_score: giMarks !== null ? giMarks : 0,
+                        el_score: elMarks !== null ? elMarks : 0,
+                        ga_score: gaMarks !== null ? gaMarks : 0
+                    };
+                    if (activeExaminationTier === 'T2') {
+                        insertPayload.cs_qualifying = csQualifyingState;
+                    }
+                    const { error } = await supabaseClient
+                        .from('mock_tests')
+                        .insert([insertPayload]);
+
+                    if (!error) {
+                        toastNotificationPopup(`Mock Mark Sheet [${sanitizedMockReferenceTitle}] committed successfully!`);
+                        rawReferenceInputField.value = '';
+                        generateCompositeScoreFormsLayout();
+                        triggerMasterDatabaseSynchronizationRefresh();
+                    } else {
+                        throw error;
+                    }
+                } catch (err) {
+                    console.error("Supabase mock logging transaction failure:", err?.message || err?.details || JSON.stringify(err));
+                    toastNotificationPopup("Database transaction crash.", "error");
+                }
+            }
+        }
+
+        async function executeRecordDeletionSequencePipeline(targetTableStringId, targetRowUuidKey) {
+            if (!confirm("Are you absolutely sure you want to permanently delete this log record?")) return;
+
+            if (supabaseClient) {
+                try {
+                    const { error } = await supabaseClient
+                        .from(targetTableStringId)
+                        .delete()
+                        .eq('id', targetRowUuidKey);
+
+                    if (!error) {
+                        toastNotificationPopup("Record wiped successfully from cloud assets.");
+                        triggerMasterDatabaseSynchronizationRefresh();
+                    } else {
+                        throw error;
+                    }
+                } catch (err) {
+                    console.error("Cascade deletion processing error pipeline:", err?.message || err?.details || JSON.stringify(err));
+                    toastNotificationPopup("Deletion rejected by database firewall.", "error");
+                }
+            }
+        }
+
+        async function fetchSyllabusStatesFromCloud() {
+            if (!supabaseClient) return {};
+            try {
+                const userName = localStorage.getItem('ssc_user_profile_name') || 'Warrior';
+                const { data, error } = await supabaseClient
+                    .from('custom_topics')
+                    .select('category, topic_name')
+                    .eq('user_name', userName);
+                if (error) throw error;
+                const mapping = {};
+                data.forEach(item => {
+                    mapping[`${item.category}||${item.topic_name}`] = 'DONE';
+                });
+                return mapping;
+            } catch (err) {
+                console.error("Failed to load cloud topics status:", err?.message || err?.details || JSON.stringify(err));
+                return {};
+            }
+        }
+
+        async function toggleSyllabusTopicCheckboxState(categoryCodeKey, topicName, currentState) {
+            if (!supabaseClient) return;
+            const userName = localStorage.getItem('ssc_user_profile_name') || 'Warrior';
+            try {
+                if (currentState === 'DONE') {
+                    const { error } = await supabaseClient
+                        .from('custom_topics')
+                        .delete()
+                        .eq('user_name', userName)
+                        .eq('category', categoryCodeKey)
+                        .eq('topic_name', topicName);
+                    if (error) throw error;
+                } else {
+                    const { error } = await supabaseClient
+                        .from('custom_topics')
+                        .insert([{ user_name: userName, category: categoryCodeKey, topic_name: topicName }]);
+                    if (error) throw error;
+                }
+                await renderSyllabusMilestonesChecklistInterface();
+            } catch (err) {
+                console.error("Failed to update topic state on cloud:", err?.message || err?.details || JSON.stringify(err));
+                toastNotificationPopup("Failed to update topic preference.", "error");
+            }
+        }
+
+        async function executeAddCustomSyllabusTopicPipeline() {
+            const textInputField = document.getElementById('input-new-syllabus-custom-topic-name');
+            const targetCategorySelection = document.getElementById('select-new-syllabus-category-target').value;
+            const sanitizedTopicTitleText = textInputField.value.trim();
+
+            if (!sanitizedTopicTitleText) {
+                toastNotificationPopup("Topic description text missing.", "error");
+                return;
+            }
+
+            const extendedRegistryKey = `custom_syllabus_ext_${targetCategorySelection}`;
+            const existingLocalExtensions = JSON.parse(localStorage.getItem(extendedRegistryKey) || '[]');
+            existingLocalExtensions.push(sanitizedTopicTitleText);
+            localStorage.setItem(extendedRegistryKey, JSON.stringify(existingLocalExtensions));
+
+            textInputField.value = '';
+            toastNotificationPopup("Added custom topic into syllabus layouts.");
+            await renderSyllabusMilestonesChecklistInterface();
+        }
+
+        async function renderSyllabusMilestonesChecklistInterface() {
+            const gridContainerOuterBox = document.getElementById('syllabus-master-category-grid-box');
+            if (!gridContainerOuterBox) return;
+
+            gridContainerOuterBox.innerHTML = '';
+
+            const categoryHeadersTranslationMap = {
+                "QA": "📐 Quantitative Aptitude Core",
+                "EL": "📖 English Language & Comprehension",
+                "GI": "🧠 Reasoning & Logical Intelligence",
+                "GA": "🌍 General Awareness & Current Strata",
+                "CS": "💻 Computer Knowledge & IT Fundamentals"
+            };
+
+            const cloudProgressStates = await fetchSyllabusStatesFromCloud();
+
+            let grandTotalTopicsCount = 0;
+            let totalCompletedDoneCount = 0;
+
+            Object.keys(MASTER_SYLLABUS_DATA_DICTIONARY).forEach(categoryKey => {
+                const frameworkBaselineTopicsList = MASTER_SYLLABUS_DATA_DICTIONARY[categoryKey];
+                const customLocalExtensionsList = JSON.parse(localStorage.getItem(`custom_syllabus_ext_${categoryKey}`) || '[]');
+                const consolidatedTopicsAggregateArray = [...frameworkBaselineTopicsList, ...customLocalExtensionsList];
+
+                const cardColumnWidgetBox = document.createElement('div');
+                cardColumnWidgetBox.className = "custom-card p-5 space-y-3";
+                
+                let markupHTMLBuffer = `<h4 class="font-black text-sm text-indigo-500 border-b border-[var(--border-ui)] pb-2">${categoryHeadersTranslationMap[categoryKey]}</h4>`;
+                markupHTMLBuffer += `<div class="space-y-2 max-h-[320px] overflow-y-auto pr-1">`;
+
+                consolidatedTopicsAggregateArray.forEach((topicName, idx) => {
+                    const lookupKey = `${categoryKey}||${topicName}`;
+                    const activeStateValue = cloudProgressStates[lookupKey] || 'TODO';
+
+                    grandTotalTopicsCount++;
+                    if (activeStateValue === 'DONE') totalCompletedDoneCount++;
+
+                    let blockBgStyleColor = "syllabus-topic-row";
+                    if (activeStateValue === 'DONE') blockBgStyleColor = "syllabus-topic-row done";
+
+                    const safeTopicName = topicName.replace(/'/g, "\'");
+                    markupHTMLBuffer += `
+                        <div class="flex items-center justify-between p-2.5 rounded-xl text-xs font-medium transition-colors border border-[var(--border-ui)] ${blockBgStyleColor}" style="color:var(--text-main)">
+                            <span class="flex-1 pr-2 tracking-wide">${topicName}</span>
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <button onclick="toggleSyllabusTopicCheckboxState('${categoryKey}', '${safeTopicName}', '${activeStateValue}')" class="px-2 py-1 rounded bg-[var(--bg-card)] border border-[var(--border-ui)] font-bold text-[10px] uppercase hover:border-indigo-500 cursor-pointer transition-all duration-150">${activeStateValue === 'DONE' ? '✅ Done' : 'Mark Done'}</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                markupHTMLBuffer += `</div>`;
+                cardColumnWidgetBox.innerHTML = markupHTMLBuffer;
+                gridContainerOuterBox.appendChild(cardColumnWidgetBox);
+            });
+
+            const overallProgressPercentage = grandTotalTopicsCount > 0 ? Math.round((totalCompletedDoneCount / grandTotalTopicsCount) * 100) : 0;
+            document.getElementById('stat-metrics-syllabus-percent-display').innerText = `${overallProgressPercentage}%`;
+            document.getElementById('stat-metrics-syllabus-progress-bar').style.width = `${overallProgressPercentage}%`;
+        }
+
+        function authenticateAppInitializationSequence() {
+            const databaseRestUrl = document.getElementById('setup-credentials-supabase-url').value.trim();
+            const clientAnonTokenKey = document.getElementById('setup-credentials-supabase-anon-key').value.trim();
+            const localUsernameValue = document.getElementById('setup-credentials-user-profile-name').value.trim();
+
+            if (!databaseRestUrl || !clientAnonTokenKey || !localUsernameValue) {
+                alert("All authentication tokens and validation identifiers are strictly mandatory parameters.");
+                return;
+            }
+
+            localStorage.setItem('core_credentials_supabase_url', databaseRestUrl);
+            localStorage.setItem('core_credentials_supabase_anon_key', clientAnonTokenKey);
+            localStorage.setItem('ssc_user_profile_name', localUsernameValue);
+
+            document.getElementById('app-credentials-setup-modal-shroud').style.display = 'none';
+            initializeGlobalCloudConnectionPipeline();
+        }
+
+        function checkExistingSavedCredentialsPipeline() {
+            const url = localStorage.getItem('core_credentials_supabase_url');
+            const token = localStorage.getItem('core_credentials_supabase_anon_key');
+            
+            if (url && token) {
+                document.getElementById('app-credentials-setup-modal-shroud').style.display = 'none';
+                initializeGlobalCloudConnectionPipeline();
+            }
+        }
+
+        async function initializeGlobalCloudConnectionPipeline() {
+            const targetUrlString = localStorage.getItem('core_credentials_supabase_url');
+            const targetAnonKeyToken = localStorage.getItem('core_credentials_supabase_anon_key');
+            const currentUserName = localStorage.getItem('ssc_user_profile_name') || 'Warrior';
+
+            document.getElementById('identity-visual-name-anchor').innerText = currentUserName;
+            document.getElementById('active-profile-identity-banner').classList.remove('hidden');
+            document.getElementById('identity-your-live-name').innerText = `${currentUserName} (You)`;
+
+            supabaseClient = window.supabase.createClient(targetUrlString, targetAnonKeyToken, {
+                auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+                global: { fetch: (...args) => fetch(...args) }
+            });
+            toastNotificationPopup("Authorization link secure. Connecting cloud server workspace.");
+            
+            await populateSubjectsInterfaceDropdowns();
+            await triggerMasterDatabaseSynchronizationRefresh();
+            await renderSyllabusMilestonesChecklistInterface();
+            establishRealtimeReplicationSubscriptionBroker();
+            fetchAndRenderLiveUsers();
+            setInterval(fetchAndRenderLiveUsers, 60000); 
+        }
+
+        async function triggerMasterDatabaseSynchronizationRefresh() {
+            if (!supabaseClient) return;
+
+            try {
+                const activeUserNameText = localStorage.getItem('ssc_user_profile_name') || 'Warrior';
+                const todayMidnightTimestampISOString = new Date().toISOString().split('T')[0]; 
+
+                const { data: studyLogsData, error: studyQueryError } = await supabaseClient
+                    .from('sessions')
+                    .select('*')
+                    .gte('created_at', `${todayMidnightTimestampISOString}T00:00:00Z`)
+                    .order('created_at', { ascending: false });
+
+                if (studyQueryError) throw studyQueryError;
+
+                const { data: liveTicks, error: liveError } = await supabaseClient
+                    .from('live_battlegrounds')
+                    .select('*');
+
+                const { data: mockLogsData, error: mockQueryError } = await supabaseClient
+                    .from('mock_tests')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (mockQueryError) throw mockQueryError;
+
+                let dailyAccumulatedMinutesYourself = 0;
+                let dailyAccumulatedMinutesBuddyPeer = 0;
+                let activeBuddyIdentityName = localStorage.getItem('ssc_buddy_profile_name') || '—';
+
+                studyLogsData.forEach(sessionRow => {
+                    const rowDurationInt = parseInt(sessionRow.duration || 0);
+                    if (sessionRow.user_name === activeUserNameText) {
+                        dailyAccumulatedMinutesYourself += rowDurationInt;
+                    } else {
+                        dailyAccumulatedMinutesBuddyPeer += rowDurationInt;
+                        activeBuddyIdentityName = sessionRow.user_name;
+                    }
+                });
+
+                document.getElementById('identity-buddy-live-name').innerText = activeBuddyIdentityName;
+                document.getElementById('versus-your-time-display').innerText = (function(m){return Math.floor(m/60)+'h '+(m%60).toString().padStart(2,'0')+'m';})(dailyAccumulatedMinutesYourself);
+                document.getElementById('versus-buddy-time-display').innerText = (function(m){return Math.floor(m/60)+'h '+(m%60).toString().padStart(2,'0')+'m';})(dailyAccumulatedMinutesBuddyPeer);
+
+                const statusBoxText = document.getElementById('versus-battle-status-alert');
+                if (dailyAccumulatedMinutesYourself > dailyAccumulatedMinutesBuddyPeer) {
+                    const leadDiff = dailyAccumulatedMinutesYourself - dailyAccumulatedMinutesBuddyPeer;
+                    statusBoxText.innerText = `🔥 You are leading by ${Math.floor(leadDiff/60)}h ${(leadDiff%60).toString().padStart(2,'0')}m! Keep it up 💪`;
+                } else if (dailyAccumulatedMinutesBuddyPeer > dailyAccumulatedMinutesYourself) {
+                    const behindDiff = dailyAccumulatedMinutesBuddyPeer - dailyAccumulatedMinutesYourself;
+                    statusBoxText.innerText = `⚠️ ${activeBuddyIdentityName} leads by ${Math.floor(behindDiff/60)}h ${(behindDiff%60).toString().padStart(2,'0')}m. Push harder!`;
+                } else {
+                    statusBoxText.innerText = "🤝 Match Tied exactly down to the baseline. Zero deviation grid lock!";
+                }
+
+                const totalHoursFloatValue = dailyAccumulatedMinutesYourself;
+                document.getElementById('stat-metrics-total-study-hours').innerText = (function(m){return Math.floor(m/60)+'h '+(m%60).toString().padStart(2,'0')+'m';})(totalHoursFloatValue);
+                document.getElementById('stat-metrics-mock-count-index').innerText = mockLogsData.filter(m => m.user_name === activeUserNameText).length;
+
+                const studyTableBodyNode = document.getElementById('table-body-focus-sessions-logs');
+                studyTableBodyNode.innerHTML = '';
+                
+                // --- SMART AGGREGATION PATTERN ARCHITECTURE ENGINE ---
+                const finalRenderedRowsArray = [];
+                const legacyTicksAccumulatorTracker = {};
+
+                studyLogsData.forEach(row => {
+                    const currentSubjectKey = row.subject_name || row.subject || "Unmapped Domain";
+                    
+                    if (row.note === 'Live auto-accumulate tick') {
+                        const compoundingUniqueKey = `${row.user_name}||${currentSubjectKey}`;
+                        
+                        if (!legacyTicksAccumulatorTracker[compoundingUniqueKey]) {
+                            legacyTicksAccumulatorTracker[compoundingUniqueKey] = {
+                                ...row,
+                                duration: 0,
+                                isAggregatedRecordBlock: true
+                            };
+                            finalRenderedRowsArray.push(legacyTicksAccumulatorTracker[compoundingUniqueKey]);
+                        }
+                        legacyTicksAccumulatorTracker[compoundingUniqueKey].duration += parseInt(row.duration || 0);
+                    } else {
+                        finalRenderedRowsArray.push({
+                            ...row,
+                            isAggregatedRecordBlock: false
+                        });
+                    }
+                });
+
+                finalRenderedRowsArray.forEach(row => {
+                    const parsedTimestampText = row.isAggregatedRecordBlock 
+                        ? "🔄 Auto Sync" 
+                        : new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        
+                    const dynamicSubjectLabelStr = row.isAggregatedRecordBlock 
+                        ? `${row.subject_name || row.subject} (Continuous Accumulation)` 
+                        : (row.subject_name || row.subject);
+
+                    const tableRowTrNode = document.createElement('tr');
+                    tableRowTrNode.className = "border-b border-[var(--border-ui)] text-xs text-[var(--text-main)]" + (row.isAggregatedRecordBlock ? " bg-indigo-50/20 dark:bg-indigo-950/10" : "");
+                    tableRowTrNode.innerHTML = `
+                        <td class="py-3 px-2 font-mono ${row.isAggregatedRecordBlock ? 'text-indigo-500 font-bold' : ''}">${parsedTimestampText}</td>
+                        <td class="py-3 px-2 font-bold">${row.user_name}</td>
+                        <td class="py-3 px-2"><span class="px-2 py-0.5 rounded text-[10px] font-black text-white" style="background-color: ${SUBJECTS_CORE_PALETTE[row.subject_name || row.subject] || '#64748b'}">${dynamicSubjectLabelStr}</span></td>
+                        <td class="py-3 px-2 font-bold tabular-nums">${row.duration >= 60 ? Math.floor(row.duration/60)+'h '+(row.duration%60).toString().padStart(2,'0')+'m' : row.duration+'m'}</td>
+                        <td class="py-3 px-2 text-right flex gap-2 justify-end items-center">
+                            ${row.user_name === activeUserNameText && !row.isAggregatedRecordBlock ? `
+                                <button onclick='openEditSessionModal(${JSON.stringify(row)})' class="text-indigo-500 font-bold cursor-pointer text-[13px]">✏️</button>
+                                <button onclick="executeRecordDeletionSequencePipeline('sessions', '${row.id}')" class="text-rose-500 font-bold cursor-pointer text-[13px]">🗑️</button>
+                            ` : ''}
+                        </td>
+                    `;
+                    studyTableBodyNode.appendChild(tableRowTrNode);
+                });
+
+                const mockTableBodyNode = document.getElementById('table-body-mock-sheets-logs');
+                mockTableBodyNode.innerHTML = '';
+
+                mockLogsData.forEach(mockRow => {
+                    const rowPercentScore = mockRow.total > 0 ? Math.round((mockRow.score / mockRow.total) * 100) : 0;
+                    const performanceBadgeColorStyle = rowPercentScore >= 78 ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-indigo-100 text-indigo-700 border border-indigo-200";
+                    
+                    const mockTrNode = document.createElement('tr');
+                    mockTrNode.className = "border-b border-[var(--border-ui)] text-xs text-[var(--text-main)]";
+                    mockTrNode.innerHTML = `
+                        <td class="py-3 px-2 font-bold">${mockRow.name}</td>
+                        <td class="py-3 px-2 font-semibold">${mockRow.user_name}</td>
+                        <td class="py-3 px-2"><span class="px-1.5 py-0.5 bg-slate-200 rounded text-[10px] font-black">${mockRow.subject}</span></td>
+                        <td class="py-3 px-2 font-mono text-[11px]">QA:${mockRow.qa_score || 0} | GI:${mockRow.gi_score || 0} | EL:${mockRow.el_score || 0} | GA:${mockRow.ga_score || 0}</td>
+                        <td class="py-3 px-2"><span class="px-2 py-1 rounded-lg text-xs font-black ${performanceBadgeColorStyle}">${mockRow.score} / ${mockRow.total} (${rowPercentScore}%)</span></td>
+                        <td class="py-3 px-2 text-right flex gap-2 justify-end items-center">
+                            ${mockRow.user_name === activeUserNameText ? `
+                                <button onclick='openEditMockModal(${JSON.stringify(mockRow)})' class="text-indigo-500 font-bold cursor-pointer text-[13px]">✏️</button>
+                                <button onclick="executeRecordDeletionSequencePipeline('mock_tests', '${mockRow.id}')" class="text-rose-500 font-bold cursor-pointer text-[13px]">🗑️</button>
+                            ` : ''}
+                        </td>
+                    `;
+                    mockTableBodyNode.appendChild(mockTrNode);
+                });
+
+                recomputeAndRenderDashboardCharts(studyLogsData.filter(s => s.user_name === activeUserNameText), mockLogsData.filter(m => m.user_name === activeUserNameText));
+
+            } catch (error) {
+                console.error("Master dashboard refresh loop exception encountered:", error?.message || error?.details || JSON.stringify(error));
+            }
+        }
+
+        let liveStudyAccumulatorIntervalId = null;
+
+        function startLiveStudyAccumulator() {
+            stopLiveStudyAccumulator();
+            liveStudyAccumulatorIntervalId = setInterval(async () => {
+                const mode = localStorage.getItem('pomodoro_active_session_mode') || 'STUDY';
+                const state = localStorage.getItem('pomodoro_engine_runtime_state') || 'STOPPED';
+                if (state !== 'RUNNING' || mode !== 'STUDY') return;
+                if (!supabaseClient) return;
+                
+                const subject = document.getElementById('pomodoro-subject-dropdown').value || 'General';
+                const userName = localStorage.getItem('ssc_user_profile_name') || 'Warrior';
+                
+                try {
+                    await supabaseClient.from('live_battlegrounds').upsert([{
+                        user_name: userName,
+                        current_subject: subject,
+                        last_active_tick: new Date().toISOString()
+                    }], { onConflict: 'user_name' });
+                } catch(e) { /* silent catch to ensure timer continuity */ }
+            }, 60000);
+        }
+
+        function stopLiveStudyAccumulator() {
+            if (liveStudyAccumulatorIntervalId) {
+                clearInterval(liveStudyAccumulatorIntervalId);
+                liveStudyAccumulatorIntervalId = null;
+            }
+        }
+
+        function establishRealtimeReplicationSubscriptionBroker() {
+            if (!supabaseClient) return;
+            setInterval(() => triggerMasterDatabaseSynchronizationRefresh(), 30000);
+            setInterval(() => populateSubjectsInterfaceDropdowns(), 60000);
+        }
+
+        async function fetchAndRenderLiveUsers() {
+            if (!supabaseClient) return;
+            try {
+                const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+                const { data, error } = await supabaseClient
+                    .from('live_battlegrounds')
+                    .select('user_name, last_active_tick')
+                    .gte('last_active_tick', fiveMinAgo);
+                    
+                if (error) throw error;
+                const panel = document.getElementById('live-users-panel');
+                const list = document.getElementById('live-users-list');
+                const myName = localStorage.getItem('ssc_user_profile_name') || 'Warrior';
+                
+                const seenUsers = new Set();
+                const liveUsers = [];
+                (data || []).forEach(row => {
+                    if (!seenUsers.has(row.user_name)) {
+                        seenUsers.add(row.user_name);
+                        liveUsers.push(row.user_name);
+                    }
+                });
+                
+                if (liveUsers.length > 0) {
+                    panel.classList.remove('hidden');
+                    list.innerHTML = liveUsers.map(u => {
+                        const isYou = u === myName;
+                        return `<span class="px-2 py-1 rounded-full ${isYou ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400' : 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400'} font-bold">🟢 ${u}${isYou ? ' (You)' : ''}</span>`;
+                    }).join('');
+                } else {
+                    panel.classList.add('hidden');
+                }
+            } catch(err) {
+                console.error('Live users fetch failed:', err);
+            }
+        }
+
+        let currentEditRecordId = null;
+        let currentEditTableName = null;
+
+        function openEditSessionModal(row) {
+            currentEditRecordId = row.id;
+            currentEditTableName = 'sessions';
+            document.getElementById('edit-modal-title').innerText = '✏️ Edit Study Session';
+            document.getElementById('edit-modal-fields').innerHTML = `
+                <div>
+                    <label class="text-xs font-bold uppercase text-[var(--text-muted)] block mb-1">Subject</label>
+                    <select id="edit-field-subject" class="w-full p-2.5 rounded-lg ui-input text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        ${Object.keys(SUBJECTS_CORE_PALETTE).map(s => `<option value="${s}" ${(row.subject_name||row.subject)===s?'selected':''}>${s}</option>`).join('')}
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-bold uppercase text-[var(--text-muted)] block mb-1">Duration (minutes)</label>
+                    <input id="edit-field-duration" type="number" min="1" max="480" value="${row.duration}"
+                        class="w-full p-2.5 rounded-lg ui-input text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="text-xs font-bold uppercase text-[var(--text-muted)] block mb-1">Note (optional)</label>
+                    <input id="edit-field-note" type="text" value="${row.note || ''}" placeholder="e.g. Algebra revision"
+                        class="w-full p-2.5 rounded-lg ui-input text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+            `;
+            document.getElementById('edit-record-modal-shroud').classList.remove('hidden');
+        }
+
+        function openEditMockModal(row) {
+            currentEditRecordId = row.id;
+            currentEditTableName = 'mock_tests';
+            const tier = row.subject || 'T1';
+            const maxMap = { T1: {qa:50,gi:50,el:50,ga:50}, T2: {qa:90,gi:90,el:135,ga:75}, SEC: {qa:50,gi:50,el:50,ga:50} };
+            const maxes = maxMap[tier] || maxMap.T1;
+            document.getElementById('edit-modal-title').innerText = '✏️ Edit Mock Test';
+            document.getElementById('edit-modal-fields').innerHTML = `
+                <div>
+                    <label class="text-xs font-bold uppercase text-[var(--text-muted)] block mb-1">Mock Name</label>
+                    <input id="edit-field-name" type="text" value="${row.name || ''}"
+                        class="w-full p-2.5 rounded-lg ui-input text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    ${['qa','gi','el','ga'].map(s => `
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-[var(--text-muted)] block mb-1">${s.toUpperCase()} <span class="text-[9px]">/ ${maxes[s]}</span></label>
+                        <input id="edit-field-${s}" type="number" min="0" max="${maxes[s]}" value="${row[s+'_score'] || 0}"
+                            oninput="clampMockInput(this,maxes[s])"
+                            class="w-full p-2 rounded-lg ui-input text-sm font-bold text-center focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>`).join('')}
+                </div>
+                ${tier === 'T2' ? `
+                <div class="flex items-center justify-between p-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200">
+                    <span class="text-xs font-bold text-amber-700 dark:text-amber-400">Computer Knowledge (Qualifying)</span>
+                    <div class="flex gap-2">
+                        <button id="edit-cs-pass" onclick="setEditCSQual('PASS')" class="px-3 py-1 rounded text-[10px] font-black uppercase ${row.cs_qualifying !== 'FAIL' ? 'bg-emerald-500 text-white border-emerald-500' : 'border border-[var(--border-ui)] text-[var(--text-muted)]'} cursor-pointer">Pass</button>
+                        <button id="edit-cs-fail" onclick="setEditCSQual('FAIL')" class="px-3 py-1 rounded text-[10px] font-black uppercase ${row.cs_qualifying === 'FAIL' ? 'bg-red-500 text-white border-red-500' : 'border border-[var(--border-ui)] text-[var(--text-muted)]'} cursor-pointer">Fail</button>
+                    </div>
+                </div>` : ''}
+            `;
+            document.getElementById('edit-record-modal-shroud').classList.remove('hidden');
+        }
+
+        let editCSQualState = 'PASS';
+        function setEditCSQual(state) {
+            editCSQualState = state;
+            const p = document.getElementById('edit-cs-pass');
+            const f = document.getElementById('edit-cs-fail');
+            if (!p || !f) return;
+            p.className = `px-3 py-1 rounded text-[10px] font-black uppercase cursor-pointer ${state === 'PASS' ? 'bg-emerald-500 text-white' : 'border border-[var(--border-ui)] text-[var(--text-muted)]'}`;
+            f.className = `px-3 py-1 rounded text-[10px] font-black uppercase cursor-pointer ${state === 'FAIL' ? 'bg-red-500 text-white' : 'border border-[var(--border-ui)] text-[var(--text-muted)]'}`;
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-record-modal-shroud').classList.add('hidden');
+            currentEditRecordId = null;
+            currentEditTableName = null;
+        }
+
+        async function saveEditedRecord() {
+            if (!supabaseClient || !currentEditRecordId || !currentEditTableName) return;
+            try {
+                let updatePayload = {};
+                if (currentEditTableName === 'sessions') {
+                    const dur = parseInt(document.getElementById('edit-field-duration').value);
+                    if (isNaN(dur) || dur < 1) { toastNotificationPopup("Duration must be at least 1 minute.", "error"); return; }
+                    updatePayload = {
+                        subject: document.getElementById('edit-field-subject').value,
+                        subject_name: document.getElementById('edit-field-subject').value,
+                        duration: dur,
+                        note: document.getElementById('edit-field-note').value
+                    };
+                } else {
+                    const qa = parseInt(document.getElementById('edit-field-qa').value) || 0;
+                    const gi = parseInt(document.getElementById('edit-field-gi').value) || 0;
+                    const el = parseInt(document.getElementById('edit-field-el').value) || 0;
+                    const ga = parseInt(document.getElementById('edit-field-ga').value) || 0;
+                    updatePayload = {
+                        name: document.getElementById('edit-field-name').value,
+                        qa_score: qa, gi_score: gi, el_score: el, ga_score: ga,
+                        score: qa + gi + el + ga,
+                        cs_qualifying: editCSQualState
+                    };
+                }
+                const { error } = await supabaseClient
+                    .from(currentEditTableName)
+                    .update(updatePayload)
+                    .eq('id', currentEditRecordId);
+                if (error) throw error;
+                toastNotificationPopup("✅ Record updated successfully!");
+                closeEditModal();
+                await triggerMasterDatabaseSynchronizationRefresh();
+            } catch (err) {
+                console.error("Edit save failed:", err?.message || JSON.stringify(err));
+                toastNotificationPopup("Failed to save changes.", "error");
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initializeSystemThemeEngine();
+            generateCompositeScoreFormsLayout();
+            
+            document.getElementById('btn-establish-pipeline-trigger').onclick = authenticateAppInitializationSequence;
+            
+            checkExistingSavedCredentialsPipeline(); 
+            restoreResilientTimerStateOnLifecycleReload(); 
+        });
+    </script>
+</body>
+</html>
+

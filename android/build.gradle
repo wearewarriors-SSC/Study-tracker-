@@ -1,0 +1,30 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.13.0'
+        classpath 'com.google.gms:google-services:4.4.4'
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+apply from: "variables.gradle"
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+tasks.withType(JavaCompile) { doFirst { File licDir = new File("/data/data/com.termux/files/usr/licenses"); if (!licDir.exists()) { licDir.mkdirs(); }; new File(licDir, "android-sdk-license").text = "893a6a6d39b7754d561e33d00d3d239ca20f18de\nd56f5187479451eabf01fb74bb65bb6a669f6719\n24a331132f8705d68d11c0f8540ff730b2ad4735\n84831b9409646a54c50e22dba77c885548184514\nf9b0c6b3580215454c154784d1ee0f68f6761158\n601085b94cd77f6b54b86d8590ced0c226811105\nc7e9a8e17ddff456d496e08f60261f113d7a4b4e\n" } }
