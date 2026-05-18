@@ -164,6 +164,16 @@
                 </div>
             </div>
 
+            <div id="live-users-panel" class="custom-card p-4 border-l-4 border-emerald-500 hidden">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="flex h-2.5 w-2.5 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span></span>
+                    <h3 class="text-sm font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">🟢 Who is Studying Right Now</h3>
+                </div>
+                <div id="live-users-list" class="flex flex-wrap gap-2 text-xs font-bold text-[var(--text-muted)]">
+                    <span>Checking...</span>
+                </div>
+            </div>
+
             <div class="dashboard-grid grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="custom-card p-6">
                     <p class="text-xs font-black text-[var(--text-muted)] tracking-wider uppercase">🔥 Today's Cumulative Study Volume</p>
@@ -198,6 +208,27 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Subject Performance Analysis -->
+            <div class="custom-card p-6">
+                <div class="flex items-center justify-between mb-4 border-b border-[var(--border-ui)] pb-3">
+                    <div>
+                        <h4 class="text-sm font-black uppercase tracking-widest text-[var(--text-muted)]">🎯 Subject-wise Mock Performance Analyser</h4>
+                        <p class="text-xs text-[var(--text-muted)] mt-0.5">Based on all your mock test scores — avg %, trend & verdict for each subject.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="flex flex-col">
+                        <h5 class="text-xs font-bold uppercase text-[var(--text-muted)] mb-3 tracking-widest">📡 Radar — Performance by Subject</h5>
+                        <div class="flex-1 min-h-[260px] flex items-center justify-center">
+                            <canvas id="canvas-subject-radar-chart"></canvas>
+                        </div>
+                    </div>
+                    <div id="subject-performance-cards-grid" class="grid grid-cols-2 gap-3 content-start">
+                        <div class="col-span-2 text-xs text-[var(--text-muted)] text-center py-8">No mock data yet. Submit a mock to see performance.</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="view-panel-timer" class="space-y-6 hidden">
@@ -223,8 +254,10 @@
                     <div>
                         <label class="block text-xs font-bold uppercase text-[var(--text-muted)] mb-1">Long Break Trigger Threshold</label>
                         <select id="pomodoro-long-break-trigger" class="w-full p-2.5 rounded-lg ui-input font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                            <option value="0">No Long Break (Continuous)</option>
                             <option value="3">After 3 Cycles (Intense Mode)</option>
                             <option value="4" selected>After 4 Cycles (Standard Block)</option>
+                            <option value="6">After 6 Cycles (Marathon Mode)</option>
                         </select>
                     </div>
 
@@ -252,10 +285,11 @@
                         <span id="timer-display-minutes">25</span>:<span id="timer-display-seconds">00</span>
                     </div>
 
-                    <div class="flex items-center gap-4 w-full max-w-xs">
+                    <div class="flex items-center gap-3 w-full max-w-xs flex-wrap">
                         <button id="btn-pomodoro-primary-toggle" onclick="togglePomodoroEngineState()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-sm transition-all duration-150 shadow-md cursor-pointer uppercase tracking-wider">Start Block</button>
                         <button id="btn-pomodoro-reset-kill" onclick="resetPomodoroEngineState()" class="px-4 py-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-[var(--text-main)] font-bold rounded-xl text-sm transition-all duration-150 cursor-pointer">Reset</button>
                     </div>
+                    <button id="btn-pomodoro-done-early" onclick="submitEarlySessionCompletion()" class="hidden w-full max-w-xs py-3 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-xl text-sm transition-all duration-150 shadow-md cursor-pointer uppercase tracking-wider">✅ Done Early — Submit Session</button>
 
                     <div class="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
                         Completed Target Streaks: <span id="pomodoro-streak-counter-value" class="text-[var(--text-main)] font-black text-sm ml-1">0</span>
@@ -290,10 +324,11 @@
                     <h3 class="text-base font-black border-b border-[var(--border-ui)] pb-2">📝 Submit Mark Sheet</h3>
                     
                     <div>
-                        <label class="block text-xs font-bold uppercase text-[var(--text-muted)] mb-1">Select Examination Tier Architecture</label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="setMockExaminationTier('T1')" id="btn-tier-toggle-t1" class="py-2 font-black text-xs rounded-lg uppercase tracking-wider border border-indigo-600 bg-indigo-600 text-white transition-all duration-150 shadow-md cursor-pointer">CGL Tier 1st</button>
-                            <button onclick="setMockExaminationTier('T2')" id="btn-tier-toggle-t2" class="py-2 font-black text-xs rounded-lg uppercase tracking-wider border border-[var(--border-ui)] text-[var(--text-muted)] bg-[var(--bg-primary)] hover:text-[var(--text-main)] transition-all duration-150 shadow-md cursor-pointer">CGL Tier 2nd</button>
+                        <label class="block text-xs font-bold uppercase text-[var(--text-muted)] mb-1">Mock Type</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setMockExaminationTier('T1')" id="btn-tier-toggle-t1" class="py-2 font-black text-xs rounded-lg uppercase tracking-wider border border-indigo-600 bg-indigo-600 text-white transition-all duration-150 shadow-md cursor-pointer">Tier 1</button>
+                            <button onclick="setMockExaminationTier('T2')" id="btn-tier-toggle-t2" class="py-2 font-black text-xs rounded-lg uppercase tracking-wider border border-[var(--border-ui)] text-[var(--text-muted)] bg-[var(--bg-primary)] hover:text-[var(--text-main)] transition-all duration-150 shadow-md cursor-pointer">Tier 2</button>
+                            <button onclick="setMockExaminationTier('SEC')" id="btn-tier-toggle-sec" class="py-2 font-black text-xs rounded-lg uppercase tracking-wider border border-[var(--border-ui)] text-[var(--text-muted)] bg-[var(--bg-primary)] hover:text-[var(--text-main)] transition-all duration-150 shadow-md cursor-pointer">Sectional</button>
                         </div>
                     </div>
 
@@ -350,6 +385,7 @@
                             <option value="EL">English Language</option>
                             <option value="GI">Reasoning Intelligence</option>
                             <option value="GA">General Awareness</option>
+                            <option value="CS">Computer Knowledge</option>
                         </select>
                         <button onclick="executeAddCustomSyllabusTopicPipeline()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg cursor-pointer transition-colors duration-150">Add Topic</button>
                     </div>
@@ -363,6 +399,21 @@
     </main>
 
     <button class="theme-toggle-fab w-14 h-14 rounded-full flex items-center justify-center text-xl cursor-pointer hover:scale-105 active:scale-95 transition-all duration-150 shadow-2xl" id="themeToggleButton" onclick="toggleSystemThemeModeConfiguration()">🌙</button>
+
+    <!-- Edit Record Modal -->
+    <div id="edit-record-modal-shroud" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 hidden">
+        <div class="bg-[var(--bg-card)] rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 id="edit-modal-title" class="text-base font-black text-[var(--text-main)]">✏️ Edit Record</h3>
+                <button onclick="closeEditModal()" class="text-[var(--text-muted)] hover:text-[var(--text-main)] text-xl font-bold cursor-pointer">✕</button>
+            </div>
+            <div id="edit-modal-fields" class="space-y-3"></div>
+            <div class="flex gap-3 pt-2">
+                <button onclick="closeEditModal()" class="flex-1 py-2.5 rounded-xl border border-[var(--border-ui)] text-xs font-black uppercase text-[var(--text-muted)] cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800">Cancel</button>
+                <button onclick="saveEditedRecord()" class="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black uppercase cursor-pointer">Save Changes</button>
+            </div>
+        </div>
+    </div>
 
     <div id="app-credentials-setup-modal-shroud" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
         <div class="bg-[var(--bg-card)] border border-[var(--border-ui)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
@@ -403,6 +454,7 @@
         
         let studyAllocationChartInstance = null;
         let mockTrajectoryChartInstance = null;
+        let subjectRadarChartInstance = null;
 
         // Background Safe Multi-Threaded Architecture Web Worker Reference Pointer
         let timerWebWorkerThread = null;
@@ -445,14 +497,17 @@
                 "Physical, Economic & Political Geography Sets", "Macroeconomics & Five Year Planning Frameworks",
                 "Physics, Chemistry & Biology Core Concepts", "Static General Knowledge Capitals, Currencies & National Parks",
                 "Current Affairs Dynamic Monthly Capsules", "Editorial Analysis Daily Newspaper Drills"
+            ],
+            "CS": [
+                "Computer Fundamentals — Hardware, Software & OS Basics", "MS Office — Word, Excel, PowerPoint Shortcuts",
+                "Internet Concepts — Browsers, Protocols, Email & Security", "Networking Basics — LAN, WAN, IP, DNS, HTTP",
+                "Memory Types — RAM, ROM, Cache, Secondary Storage", "Input/Output Devices & Peripheral Units",
+                "Number Systems — Binary, Octal, Hexadecimal Conversions", "Database Concepts — DBMS, SQL Basics",
+                "Cybersecurity Threats — Virus, Malware, Phishing, Firewall", "Shortcut Keys & File Management Operations"
             ]
         };
 
-        // ====================================================================
-        // INTERACTIVE CORE UTILITY GRAPHICS ENGINE (CHART.JS MANAGER)
-        // ====================================================================
-
-        function cleanSlateCanvasElementContext(canvasElementId) {
+                function cleanSlateCanvasElementContext(canvasElementId) {
             const currentElement = document.getElementById(canvasElementId);
             if (!currentElement) return null;
             const contextPointer = currentElement.getContext('2d');
@@ -527,7 +582,7 @@
                         ctx.stroke();
                         ctx.fillStyle = '#ef4444';
                         ctx.font = 'bold 10px sans-serif';
-                        ctx.fillText('TARGET LINE (78%)', left + 10, yPixelCoordinate - 6);
+                        ctx.fillText('🎯 500 RANK TARGET (78%+)', left + 10, yPixelCoordinate - 6);
                         ctx.restore();
                     }
                 }
@@ -560,13 +615,135 @@
                 },
                 plugins: [nativeTargetLinePlugin]
             });
+
+            renderSubjectPerformanceAnalysis(mockSheetsLogsArray);
         }
 
-        // ====================================================================
-        // SYSTEM CONTROLLER DECK & UI RENDERING INTERFACES
-        // ====================================================================
+                function renderSubjectPerformanceAnalysis(mockSheetsLogsArray) {
+            const SUBJECT_CONFIG = {
+                qa: { label: 'Quantitative Aptitude', max: { T1: 50, T2: 90, SEC: 50 }, color: '#4f46e5', short: 'QA' },
+                gi: { label: 'Reasoning Intelligence', max: { T1: 50, T2: 90, SEC: 50 }, color: '#ec4899', short: 'GI' },
+                el: { label: 'English Language',       max: { T1: 50, T2: 135, SEC: 50 }, color: '#06b6d4', short: 'EL' },
+                ga: { label: 'General Awareness',      max: { T1: 50, T2: 75, SEC: 50 }, color: '#f59e0b', short: 'GA' }
+            };
 
-        function switchNavigationRouteTab(targetTabId) {
+            // Accumulate per-subject scores across all mocks
+            const subjectAccumulator = {};
+            Object.keys(SUBJECT_CONFIG).forEach(key => {
+                subjectAccumulator[key] = { scores: [], percentages: [] };
+            });
+
+            const sorted = [...mockSheetsLogsArray].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+            sorted.forEach(mock => {
+                const tier = mock.subject || 'T1'; // subject field stores tier
+                Object.keys(SUBJECT_CONFIG).forEach(key => {
+                    const rawScore = mock[`${key}_score`];
+                    if (rawScore == null || rawScore === 0 && mock[`qa_score`] == null) return;
+                    if (rawScore == null) return;
+                    const maxForTier = SUBJECT_CONFIG[key].max[tier] || 50;
+                    const pct = Math.round((parseInt(rawScore) / maxForTier) * 100);
+                    subjectAccumulator[key].scores.push(parseInt(rawScore));
+                    subjectAccumulator[key].percentages.push(pct);
+                });
+            });
+
+            // Compute stats per subject
+            const stats = {};
+            Object.keys(SUBJECT_CONFIG).forEach(key => {
+                const percs = subjectAccumulator[key].percentages;
+                if (percs.length === 0) { stats[key] = null; return; }
+                const avg = Math.round(percs.reduce((a, b) => a + b, 0) / percs.length);
+                const last3 = percs.slice(-3);
+                const trend = last3.length >= 2
+                    ? (last3[last3.length - 1] - last3[0]) >= 3 ? 'improving'
+                    : (last3[0] - last3[last3.length - 1]) >= 3 ? 'declining' : 'stable'
+                    : 'stable';
+                const verdict = avg >= 80 ? { text: 'Excellent 🏆', color: '#10b981', bg: 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800' }
+                    : avg >= 70 ? { text: 'Good ✅', color: '#4f46e5', bg: 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800' }
+                    : avg >= 55 ? { text: 'Average ⚠️', color: '#f59e0b', bg: 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800' }
+                    : { text: 'Needs Work 🔴', color: '#ef4444', bg: 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800' };
+                const trendIcon = trend === 'improving' ? '📈' : trend === 'declining' ? '📉' : '➡️';
+                stats[key] = { avg, trend, trendIcon, verdict, count: percs.length, best: Math.max(...percs), worst: Math.min(...percs) };
+            });
+
+            // ── Radar Chart ──
+            const radarLabels = Object.values(SUBJECT_CONFIG).map(s => s.short);
+            const radarData = Object.keys(SUBJECT_CONFIG).map(k => stats[k]?.avg || 0);
+            const radarColors = Object.values(SUBJECT_CONFIG).map(s => s.color);
+
+            const radarCtx = document.getElementById('canvas-subject-radar-chart');
+            if (!radarCtx) return;
+            if (subjectRadarChartInstance) subjectRadarChartInstance.destroy();
+
+            subjectRadarChartInstance = new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: radarLabels,
+                    datasets: [{
+                        label: 'Avg Score %',
+                        data: radarData,
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79,70,229,0.15)',
+                        borderWidth: 2.5,
+                        pointBackgroundColor: radarColors,
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            min: 0, max: 100,
+                            ticks: { stepSize: 25, font: { size: 9 }, color: '#94a3b8', backdropColor: 'transparent' },
+                            grid: { color: 'rgba(148,163,184,0.2)' },
+                            pointLabels: { font: { size: 12, weight: 'bold' }, color: '#64748b' }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // ── Performance Cards ──
+            const grid = document.getElementById('subject-performance-cards-grid');
+            if (!grid) return;
+
+            const hasAnyData = Object.values(stats).some(s => s !== null);
+            if (!hasAnyData) {
+                grid.innerHTML = `<div class="col-span-2 text-xs text-[var(--text-muted)] text-center py-8">No mock data yet. Submit a mock to see performance.</div>`;
+                return;
+            }
+
+            grid.innerHTML = Object.entries(SUBJECT_CONFIG).map(([key, cfg]) => {
+                const s = stats[key];
+                if (!s) return `
+                    <div class="rounded-xl border border-[var(--border-ui)] p-3 bg-[var(--bg-card)] opacity-50">
+                        <div class="text-xs font-black uppercase tracking-widest" style="color:${cfg.color}">${cfg.short}</div>
+                        <div class="text-xs text-[var(--text-muted)] mt-1">${cfg.label}</div>
+                        <div class="text-xs mt-2 text-[var(--text-muted)]">No data yet</div>
+                    </div>`;
+                return `
+                    <div class="rounded-xl border p-3 ${s.verdict.bg}">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-black uppercase tracking-widest" style="color:${cfg.color}">${cfg.short}</span>
+                            <span class="text-[10px] font-bold" style="color:${s.verdict.color}">${s.verdict.text}</span>
+                        </div>
+                        <div class="text-2xl font-black tabular-nums" style="color:${cfg.color}">${s.avg}%</div>
+                        <div class="text-[10px] text-[var(--text-muted)] mt-0.5">${cfg.label}</div>
+                        <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-700" style="width:${s.avg}%;background:${cfg.color}"></div>
+                        </div>
+                        <div class="flex justify-between mt-2 text-[10px] text-[var(--text-muted)] font-semibold">
+                            <span>${s.trendIcon} ${s.trend}</span>
+                            <span>Best: ${s.best}%</span>
+                        </div>
+                        <div class="text-[10px] text-[var(--text-muted)] mt-0.5">${s.count} mock${s.count !== 1 ? 's' : ''} · Worst: ${s.worst}%</div>
+                    </div>`;
+            }).join('');
+        }
+
+                function switchNavigationRouteTab(targetTabId) {
             activeRouteTabId = targetTabId;
             const tabs = ['dashboard', 'timer', 'mocks', 'syllabus'];
             
@@ -576,9 +753,13 @@
                 if (tab === targetTabId) {
                     panel.classList.remove('hidden');
                     panel.classList.add('block');
+                    btn.classList.add('border-indigo-600', 'text-indigo-600');
+                    btn.classList.remove('border-transparent', 'text-[var(--text-muted)]');
                 } else {
                     panel.classList.remove('block');
                     panel.classList.add('hidden');
+                    btn.classList.remove('border-indigo-600', 'text-indigo-600');
+                    btn.classList.add('border-transparent', 'text-[var(--text-muted)]');
                 }
             });
 
@@ -616,10 +797,7 @@
                 setTimeout(() => notificationNode.remove(), 300);
             }, 4000);
         }
-
-        // ====================================================================
         // BACKGROUND RESILIENT POMODORO TIMER WEB WORKER CORES ENGINE
-        // ====================================================================
 
         function initializeNativeAudioPlaybackEngine() {
             if (!nativeAudioContextRegistry) {
@@ -651,7 +829,7 @@
                     soundOscillatorNode.stop(schedulingOffsetTime + 0.18);
                 }
             } catch (err) {
-                console.error("Autoplay browser audio security engine check catch:", err);
+                console.error("Autoplay browser audio security engine check catch:", err?.message || err?.details || JSON.stringify(err));
             }
         }
 
@@ -674,6 +852,8 @@
                 localStorage.setItem('pomodoro_engine_runtime_state', 'STOPPED');
                 actionToggleButton.innerText = "Start Block";
                 document.getElementById('pomodoro-state-badge').innerText = "⏸️ POMODORO PAUSED";
+                document.getElementById('btn-pomodoro-done-early').classList.add('hidden');
+                stopLiveStudyAccumulator();
             } else {
                 let remainingSeconds = parseInt(localStorage.getItem('pomodoro_seconds_counter_remaining'));
                 
@@ -687,6 +867,9 @@
                 localStorage.setItem('pomodoro_engine_runtime_state', 'RUNNING');
                 
                 actionToggleButton.innerText = "Pause Block";
+                const isStudyMode = (localStorage.getItem('pomodoro_active_session_mode') || 'STUDY') === 'STUDY';
+                if (isStudyMode) document.getElementById('btn-pomodoro-done-early').classList.remove('hidden');
+                if (isStudyMode) startLiveStudyAccumulator();
                 spawnContinuousWebWorkerCountdownLoop(expectedTargetWallClockTimestamp);
             }
         }
@@ -721,14 +904,18 @@
             dashboardBadge.innerText = activeInternalModeContext === 'STUDY' ? "🎯 HYPERFOCUS WORK BLOCK ACTIVE" : "🍃 REST COMPLIANCE INTERVAL ACTIVE";
 
             timerWebWorkerThread.onmessage = function(event) {
-                const countSecondsLeft = event.data.secondsRemaining;
-                localStorage.setItem('pomodoro_seconds_counter_remaining', countSecondsLeft.toString());
-                syncChronometerDisplayDigits(countSecondsLeft);
+                // Use setTimeout(0) to fully detach from the postMessage structured-clone
+                // cycle — prevents DataCloneError when Supabase Headers exist on window scope
+                setTimeout(function() {
+                    const countSecondsLeft = event.data.secondsRemaining;
+                    localStorage.setItem('pomodoro_seconds_counter_remaining', countSecondsLeft.toString());
+                    syncChronometerDisplayDigits(countSecondsLeft);
 
-                if (countSecondsLeft <= 0) {
-                    timerWebWorkerThread.terminate();
-                    executePomodoroCascadeTransitionSequence(); 
-                }
+                    if (countSecondsLeft <= 0) {
+                        timerWebWorkerThread.terminate();
+                        executePomodoroCascadeTransitionSequence();
+                    }
+                }, 0);
             };
         }
 
@@ -757,7 +944,7 @@
                             throw error;
                         }
                     } catch (err) {
-                        console.error("Cloud database write stream failed:", err);
+                        console.error("Cloud database write stream failed:", err?.message || err?.details || JSON.stringify(err));
                         toastNotificationPopup("Database push offline.", "error");
                     }
                 }
@@ -768,7 +955,7 @@
 
                 const breakThresholdConfiguration = parseInt(document.getElementById('pomodoro-long-break-trigger').value || '4');
 
-                if (totalCompletedStreaks % breakThresholdConfiguration === 0) {
+                if (breakThresholdConfiguration > 0 && totalCompletedStreaks % breakThresholdConfiguration === 0) {
                     nextSessionMode = 'LONG_REST';
                     nextDurationMinutesInterval = 15; 
                     toastNotificationPopup("Excellent milestone loop hit! Take a 15-minute long restoration block.");
@@ -785,13 +972,66 @@
 
             localStorage.setItem('pomodoro_active_session_mode', nextSessionMode);
             localStorage.setItem('pomodoro_seconds_counter_remaining', (nextDurationMinutesInterval * 60).toString());
-            
-            const postTransitionTargetWallclockTimestamp = Date.now() + (nextDurationMinutesInterval * 60 * 1000);
-            localStorage.setItem('pomodoro_target_wallclock_cutoff', postTransitionTargetWallclockTimestamp.toString());
+            localStorage.setItem('pomodoro_engine_runtime_state', 'STOPPED');
 
-            setTimeout(() => {
-                spawnContinuousWebWorkerCountdownLoop(postTransitionTargetWallclockTimestamp);
-            }, 1000);
+            // After REST ends → reset to STUDY ready state, require manual Start
+            syncChronometerDisplayDigits(nextDurationMinutesInterval * 60);
+            const badge = document.getElementById('pomodoro-state-badge');
+            const startBtn = document.getElementById('btn-pomodoro-primary-toggle');
+            if (nextSessionMode === 'STUDY') {
+                badge.innerText = '🎯 BREAK DONE — Press Start to Study';
+                startBtn.innerText = 'Start Block';
+                document.getElementById('btn-pomodoro-done-early').classList.add('hidden');
+                stopLiveStudyAccumulator();
+            } else {
+                // REST or LONG_REST: auto-start the break
+                const postTransitionTargetWallclockTimestamp = Date.now() + (nextDurationMinutesInterval * 60 * 1000);
+                localStorage.setItem('pomodoro_target_wallclock_cutoff', postTransitionTargetWallclockTimestamp.toString());
+                setTimeout(() => spawnContinuousWebWorkerCountdownLoop(postTransitionTargetWallclockTimestamp), 500);
+            }
+        }
+
+        async function submitEarlySessionCompletion() {
+            const activeMode = localStorage.getItem('pomodoro_active_session_mode') || 'STUDY';
+            if (activeMode !== 'STUDY') {
+                toastNotificationPopup("Early submit only works during a study block.", "error");
+                return;
+            }
+            const plannedMinutes = parseInt(document.getElementById('pomodoro-session-selector').value || '25');
+            const remainingSeconds = parseInt(localStorage.getItem('pomodoro_seconds_counter_remaining') || '0');
+            const elapsedMinutes = Math.max(1, Math.round((plannedMinutes * 60 - remainingSeconds) / 60));
+
+            if (elapsedMinutes < 1) {
+                toastNotificationPopup("Study at least 1 minute before submitting early.", "error");
+                return;
+            }
+
+            const subject = document.getElementById('pomodoro-subject-dropdown').value || 'Quantitative Aptitude';
+            const userProfileName = localStorage.getItem('ssc_user_profile_name') || 'Warrior';
+
+            if (supabaseClient) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('sessions')
+                        .insert([{ user_name: userProfileName, duration: elapsedMinutes, subject: subject, subject_name: subject, note: `Early Submission — ${elapsedMinutes}m of ${plannedMinutes}m planned` }]);
+                    if (!error) {
+                        toastNotificationPopup(`✅ ${elapsedMinutes} min logged for ${subject}!`);
+                    } else { throw error; }
+                } catch (err) {
+                    console.error("Early submit cloud write failed:", err?.message || err?.details || JSON.stringify(err));
+                    toastNotificationPopup("Database push offline.", "error");
+                }
+            } else {
+                toastNotificationPopup(`✅ ${elapsedMinutes} min session recorded locally.`);
+            }
+
+            // Count streak and stop timer
+            let totalStreaks = parseInt(localStorage.getItem('pomodoro_completed_streaks_index') || '0') + 1;
+            localStorage.setItem('pomodoro_completed_streaks_index', totalStreaks.toString());
+            document.getElementById('pomodoro-streak-counter-value').innerText = totalStreaks;
+
+            resetPomodoroEngineState();
+            document.getElementById('btn-pomodoro-done-early').classList.add('hidden');
         }
 
         function resetPomodoroEngineState() {
@@ -810,6 +1050,8 @@
             const toggleButton = document.getElementById('btn-pomodoro-primary-toggle');
             toggleButton.innerText = "Start Block";
             document.getElementById('pomodoro-state-badge').innerText = "🎯 FOCUS ENGINE READY";
+            document.getElementById('btn-pomodoro-done-early').classList.add('hidden');
+            stopLiveStudyAccumulator();
         }
 
         function restoreResilientTimerStateOnLifecycleReload() {
@@ -850,10 +1092,7 @@
                 restoreResilientTimerStateOnLifecycleReload();
             }
         });
-
-        // ====================================================================
         // DYNAMIC SUBJECTS MANAGEMENT MATRIX CONTROLLER
-        // ====================================================================
 
         async function fetchCustomSubjectsFromCloud() {
             if (!supabaseClient) return [];
@@ -862,7 +1101,7 @@
                 if (error) throw error;
                 return data.map(item => item.subject_name);
             } catch (err) {
-                console.error("Failed to load cloud custom subjects:", err);
+                console.error("Failed to load cloud custom subjects:", err?.message || err?.details || JSON.stringify(err));
                 return [];
             }
         }
@@ -901,28 +1140,24 @@
                     rawInputField.value = '';
                     await populateSubjectsInterfaceDropdowns();
                 } catch (err) {
-                    console.error("Failed to save cloud subject:", err);
+                    console.error("Failed to save cloud subject:", err?.message || err?.details || JSON.stringify(err));
                     toastNotificationPopup("Failed to store custom subject on cloud.", "error");
                 }
             }
         }
-
-        // ====================================================================
         // COMPOSITE MOCK SCORE MANAGEMENT CONTROLLER (SINGLE-PAGE LOGGER)
-        // ====================================================================
 
         function setMockExaminationTier(targetTierStringCode) {
             activeExaminationTier = targetTierStringCode;
             const btnT1 = document.getElementById('btn-tier-toggle-t1');
             const btnT2 = document.getElementById('btn-tier-toggle-t2');
 
-            if (targetTierStringCode === 'T1') {
-                btnT1.className = "py-2 font-black text-xs rounded-lg uppercase tracking-wider border border-indigo-600 bg-indigo-600 text-white transition-all duration-150 shadow-md cursor-pointer";
-                btnT2.className = "py-2 font-black text-xs rounded-lg uppercase tracking-wider border border-[var(--border-ui)] text-[var(--text-muted)] bg-[var(--bg-primary)] hover:text-[var(--text-main)] transition-all duration-150 shadow-md cursor-pointer";
-            } else {
-                btnT2.className = "py-2 font-black text-xs rounded-lg uppercase tracking-wider border border-indigo-600 bg-indigo-600 text-white transition-all duration-150 shadow-md cursor-pointer";
-                btnT1.className = "py-2 font-black text-xs rounded-lg uppercase tracking-wider border border-[var(--border-ui)] text-[var(--text-muted)] bg-[var(--bg-primary)] hover:text-[var(--text-main)] transition-all duration-150 shadow-md cursor-pointer";
-            }
+            const btnSec = document.getElementById('btn-tier-toggle-sec');
+            const activeClass = 'py-2 font-black text-xs rounded-lg uppercase tracking-wider border border-indigo-600 bg-indigo-600 text-white transition-all duration-150 shadow-md cursor-pointer';
+            const inactiveClass = 'py-2 font-black text-xs rounded-lg uppercase tracking-wider border border-[var(--border-ui)] text-[var(--text-muted)] bg-[var(--bg-primary)] hover:text-[var(--text-main)] transition-all duration-150 shadow-md cursor-pointer';
+            btnT1.className = targetTierStringCode === 'T1' ? activeClass : inactiveClass;
+            btnT2.className = targetTierStringCode === 'T2' ? activeClass : inactiveClass;
+            btnSec.className = targetTierStringCode === 'SEC' ? activeClass : inactiveClass;
 
             generateCompositeScoreFormsLayout();
         }
@@ -945,25 +1180,82 @@
                     { id: "gi", name: "Reasoning & General Intellect", max: 90 },
                     { id: "el", name: "English Lang & Comprehension", max: 135 },
                     { id: "ga", name: "General Awareness Segment", max: 75 }
+                ],
+                "SEC": [
+                    { id: "qa", name: "Quantitative Aptitude", max: 50 },
+                    { id: "el", name: "English Language", max: 50 },
+                    { id: "gi", name: "Reasoning Intelligence", max: 50 },
+                    { id: "ga", name: "General Awareness", max: 50 }
                 ]
             };
 
             const activeBlueprintSet = tierLayoutBlueprints[activeExaminationTier];
 
             activeBlueprintSet.forEach(inputFieldDescriptor => {
-                const textFormGroupWrapperRow = document.createElement('div');
-                textFormGroupWrapperRow.className = "flex items-center justify-between gap-4";
-                textFormGroupWrapperRow.innerHTML = `
+                const row = document.createElement('div');
+                row.className = "flex items-center justify-between gap-4";
+                row.innerHTML = `
                     <label class="text-xs font-semibold text-[var(--text-main)] flex-1">${inputFieldDescriptor.name}</label>
                     <div class="flex items-center gap-2 w-32 justify-end">
-                        <input type="number" id="mock-segment-input-${inputFieldDescriptor.id}" oninput="recalculateCompositeTotalScoreMetrics()" placeholder="0" min="0" max="${inputFieldDescriptor.max}" class="w-16 p-1.5 rounded-lg ui-input text-center text-xs font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500 tabular-nums">
+                        <input type="number" id="mock-segment-input-${inputFieldDescriptor.id}"
+                            oninput="clampMockInput(this, ${inputFieldDescriptor.max}); recalculateCompositeTotalScoreMetrics();"
+                            placeholder="0" min="0" max="${inputFieldDescriptor.max}"
+                            class="w-16 p-1.5 rounded-lg ui-input text-center text-xs font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500 tabular-nums">
                         <span class="text-xs text-[var(--text-muted)] font-bold">/ ${inputFieldDescriptor.max}</span>
                     </div>
                 `;
-                placementContainer.appendChild(textFormGroupWrapperRow);
+                placementContainer.appendChild(row);
             });
 
+            // T2: add Computer Knowledge qualifying toggle (not scored)
+            if (activeExaminationTier === 'T2') {
+                const csRow = document.createElement('div');
+                csRow.className = "flex items-center justify-between gap-4 pt-2 border-t border-[var(--border-ui)] mt-1";
+                csRow.innerHTML = `
+                    <div class="flex-1">
+                        <label class="text-xs font-semibold text-[var(--text-main)]">Computer Knowledge (Sec III)</label>
+                        <p class="text-[10px] text-amber-500 font-bold mt-0.5">⚠️ Qualifying Only — Not counted in score</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="cs-qual-pass" onclick="setCSQualifying('PASS')"
+                            class="px-3 py-1 rounded-lg text-[10px] font-black uppercase border border-emerald-500 bg-emerald-500 text-white cursor-pointer transition-all">Pass</button>
+                        <button id="cs-qual-fail" onclick="setCSQualifying('FAIL')"
+                            class="px-3 py-1 rounded-lg text-[10px] font-black uppercase border border-[var(--border-ui)] text-[var(--text-muted)] bg-[var(--bg-primary)] cursor-pointer transition-all">Fail</button>
+                    </div>
+                `;
+                placementContainer.appendChild(csRow);
+            }
+
+            // SEC: add info label
+            if (activeExaminationTier === 'SEC') {
+                const infoRow = document.createElement('div');
+                infoRow.className = "text-[10px] text-indigo-500 font-bold pt-1";
+                infoRow.innerText = "📊 Enter marks for each subject separately to track individual performance.";
+                placementContainer.appendChild(infoRow);
+            }
+
             recalculateCompositeTotalScoreMetrics(); 
+        }
+
+        function clampMockInput(inputEl, max) {
+            let val = parseInt(inputEl.value);
+            if (!isNaN(val) && val > max) {
+                inputEl.value = max;
+                inputEl.classList.add('border-red-500');
+                setTimeout(() => inputEl.classList.remove('border-red-500'), 1000);
+            }
+            if (!isNaN(val) && val < 0) inputEl.value = 0;
+        }
+
+        let csQualifyingState = 'PASS';
+        function setCSQualifying(state) {
+            csQualifyingState = state;
+            const passBtn = document.getElementById('cs-qual-pass');
+            const failBtn = document.getElementById('cs-qual-fail');
+            if (!passBtn || !failBtn) return;
+            const activeG = 'px-3 py-1 rounded-lg text-[10px] font-black uppercase border cursor-pointer transition-all';
+            passBtn.className = activeG + (state === 'PASS' ? ' border-emerald-500 bg-emerald-500 text-white' : ' border-[var(--border-ui)] text-[var(--text-muted)] bg-[var(--bg-primary)]');
+            failBtn.className = activeG + (state === 'FAIL' ? ' border-red-500 bg-red-500 text-white' : ' border-[var(--border-ui)] text-[var(--text-muted)] bg-[var(--bg-primary)]');
         }
 
         function recalculateCompositeTotalScoreMetrics() {
@@ -971,7 +1263,14 @@
             const inputElementsQueryArray = document.querySelectorAll(`[id^="mock-segment-input-"]`);
             
             let accumulatedEarnedScore = 0;
-            let maximumTheoreticalTotalBaseline = activeTierSelection === 'T1' ? 200 : 390; 
+            // For sectional, max = whichever section has a value entered
+            let maximumTheoreticalTotalBaseline;
+            if (activeTierSelection === 'T1') maximumTheoreticalTotalBaseline = 200;
+            else if (activeTierSelection === 'T2') maximumTheoreticalTotalBaseline = 390;
+            else if (activeTierSelection === 'SEC') {
+                maximumTheoreticalTotalBaseline = 50; // each subject is out of 50
+            }
+            else maximumTheoreticalTotalBaseline = 390; 
 
             inputElementsQueryArray.forEach(inputNode => {
                 accumulatedEarnedScore += parseInt(inputNode.value) || 0;
@@ -995,24 +1294,48 @@
             const elMarks = parseInt(document.getElementById('mock-segment-input-el')?.value) || 0;
             const gaMarks = parseInt(document.getElementById('mock-segment-input-ga')?.value) || 0;
 
-            const aggregateCumulativeScore = qaMarks + giMarks + elMarks + gaMarks;
-            const totalScaleMaximumBaseline = activeExaminationTier === 'T1' ? 200 : 390;
+            // Validate none exceed max
+            const inputs = document.querySelectorAll('[id^="mock-segment-input-"]');
+            for (const inp of inputs) {
+                const val = parseInt(inp.value) || 0;
+                const max = parseInt(inp.max) || 0;
+                if (val > max) {
+                    toastNotificationPopup(`Score cannot exceed maximum marks (${max})`, "error");
+                    inp.focus();
+                    return;
+                }
+            }
+
+            let aggregateCumulativeScore, totalScaleMaximumBaseline;
+            if (activeExaminationTier === 'SEC') {
+                // SEC: each row is a separate sectional attempt, score = sum of entered, total = 50 * count of filled
+                const filledCount = [qaMarks, giMarks, elMarks, gaMarks].filter(v => v > 0).length || 1;
+                aggregateCumulativeScore = qaMarks + giMarks + elMarks + gaMarks;
+                totalScaleMaximumBaseline = 50 * filledCount;
+            } else {
+                aggregateCumulativeScore = qaMarks + giMarks + elMarks + gaMarks;
+                totalScaleMaximumBaseline = activeExaminationTier === 'T1' ? 200 : 390;
+            }
 
             if (supabaseClient) {
                 try {
-                    const { error } = await supabaseClient
-                        .from('mock_tests')
-                        .insert([{
+                    const insertPayload = {
                             user_name: currentActiveUserProfile,
                             name: sanitizedMockReferenceTitle,
-                            subject: activeExaminationTier, 
+                            subject: activeExaminationTier,
                             score: aggregateCumulativeScore,
                             total: totalScaleMaximumBaseline,
                             qa_score: qaMarks,
                             gi_score: giMarks,
                             el_score: elMarks,
                             ga_score: gaMarks
-                        }]);
+                    };
+                    if (activeExaminationTier === 'T2') {
+                        insertPayload.cs_qualifying = csQualifyingState;
+                    }
+                    const { error } = await supabaseClient
+                        .from('mock_tests')
+                        .insert([insertPayload]);
 
                     if (!error) {
                         toastNotificationPopup(`Mock Mark Sheet [${sanitizedMockReferenceTitle}] committed successfully!`);
@@ -1023,7 +1346,7 @@
                         throw error;
                     }
                 } catch (err) {
-                    console.error("Supabase mock logging transaction failure:", err);
+                    console.error("Supabase mock logging transaction failure:", err?.message || err?.details || JSON.stringify(err));
                     toastNotificationPopup("Database transaction crash.", "error");
                 }
             }
@@ -1046,46 +1369,54 @@
                         throw error;
                     }
                 } catch (err) {
-                    console.error("Cascade deletion processing error pipeline:", err);
+                    console.error("Cascade deletion processing error pipeline:", err?.message || err?.details || JSON.stringify(err));
                     toastNotificationPopup("Deletion rejected by database firewall.", "error");
                 }
             }
         }
-
-        // ====================================================================
         // TARGET SYLLABUS CHECKLIST GRAPHICS RENDER ENGINE
-        // ====================================================================
 
         async function fetchSyllabusStatesFromCloud() {
             if (!supabaseClient) return {};
             try {
-                const { data, error } = await supabaseClient.from('custom_topics').select('topic_id, status_state');
+                const userName = localStorage.getItem('ssc_user_profile_name') || 'Warrior';
+                const { data, error } = await supabaseClient
+                    .from('custom_topics')
+                    .select('category, topic_name')
+                    .eq('user_name', userName);
                 if (error) throw error;
                 const mapping = {};
                 data.forEach(item => {
-                    mapping[item.topic_id] = item.status_state;
+                    mapping[`${item.category}||${item.topic_name}`] = 'DONE';
                 });
                 return mapping;
             } catch (err) {
-                console.error("Failed to load cloud topics status:", err);
+                console.error("Failed to load cloud topics status:", err?.message || err?.details || JSON.stringify(err));
                 return {};
             }
         }
 
-        async function toggleSyllabusTopicCheckboxState(categoryCodeKey, topicStringIndex, activeStateValueString) {
+        async function toggleSyllabusTopicCheckboxState(categoryCodeKey, topicName, currentState) {
             if (!supabaseClient) return;
-            const compositeRegistryUniqueKeyId = `${categoryCodeKey}_${topicStringIndex}`;
-            
+            const userName = localStorage.getItem('ssc_user_profile_name') || 'Warrior';
             try {
-                const { error } = await supabaseClient.from('custom_topics').upsert([{ 
-                    topic_id: compositeRegistryUniqueKeyId, 
-                    status_state: activeStateValueString 
-                }], { onConflict: 'topic_id' });
-                
-                if (error) throw error;
+                if (currentState === 'DONE') {
+                    const { error } = await supabaseClient
+                        .from('custom_topics')
+                        .delete()
+                        .eq('user_name', userName)
+                        .eq('category', categoryCodeKey)
+                        .eq('topic_name', topicName);
+                    if (error) throw error;
+                } else {
+                    const { error } = await supabaseClient
+                        .from('custom_topics')
+                        .insert([{ user_name: userName, category: categoryCodeKey, topic_name: topicName }]);
+                    if (error) throw error;
+                }
                 await renderSyllabusMilestonesChecklistInterface();
             } catch (err) {
-                console.error("Failed to update topic state on cloud:", err);
+                console.error("Failed to update topic state on cloud:", err?.message || err?.details || JSON.stringify(err));
                 toastNotificationPopup("Failed to update topic preference.", "error");
             }
         }
@@ -1120,7 +1451,8 @@
                 "QA": "📐 Quantitative Aptitude Core",
                 "EL": "📖 English Language & Comprehension",
                 "GI": "🧠 Reasoning & Logical Intelligence",
-                "GA": "🌍 General Awareness & Current Strata"
+                "GA": "🌍 General Awareness & Current Strata",
+                "CS": "💻 Computer Knowledge & IT Fundamentals"
             };
 
             const cloudProgressStates = await fetchSyllabusStatesFromCloud();
@@ -1140,22 +1472,21 @@
                 markupHTMLBuffer += `<div class="space-y-2 max-h-[320px] overflow-y-auto pr-1">`;
 
                 consolidatedTopicsAggregateArray.forEach((topicName, idx) => {
-                    const lookupCompositeId = `${categoryKey}_${idx}`;
-                    const activeStateValue = cloudProgressStates[lookupCompositeId] || 'TODO';
+                    const lookupKey = `${categoryKey}||${topicName}`;
+                    const activeStateValue = cloudProgressStates[lookupKey] || 'TODO';
 
                     grandTotalTopicsCount++;
                     if (activeStateValue === 'DONE') totalCompletedDoneCount++;
 
                     let blockBgStyleColor = "bg-slate-50 dark:bg-slate-900/30 text-[var(--text-main)]";
                     if (activeStateValue === 'DONE') blockBgStyleColor = "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50";
-                    if (activeStateValue === 'WEAK') blockBgStyleColor = "bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50";
 
+                    const safeTopicName = topicName.replace(/'/g, "\'");
                     markupHTMLBuffer += `
                         <div class="flex items-center justify-between p-2.5 rounded-xl text-xs font-medium transition-colors ${blockBgStyleColor}">
                             <span class="flex-1 pr-2 tracking-wide">${topicName}</span>
                             <div class="flex items-center gap-1.5 shrink-0">
-                                <button onclick="toggleSyllabusTopicCheckboxState('${categoryKey}', ${idx}, '${activeStateValue === 'DONE' ? 'TODO' : 'DONE'}')" class="px-2 py-1 rounded bg-[var(--bg-card)] border border-[var(--border-ui)] font-bold text-[10px] uppercase hover:border-indigo-500 cursor-pointer transition-all duration-150">${activeStateValue === 'DONE' ? '✅ Done' : 'Mark Done'}</button>
-                                <button onclick="toggleSyllabusTopicCheckboxState('${categoryKey}', ${idx}, '${activeStateValue === 'WEAK' ? 'TODO' : 'WEAK'}')" class="px-2 py-1 rounded bg-[var(--bg-card)] border border-[var(--border-ui)] font-bold text-[10px] uppercase hover:border-rose-500 cursor-pointer transition-all duration-150">${activeStateValue === 'WEAK' ? '⚠️ Weak' : 'Weak'}</button>
+                                <button onclick="toggleSyllabusTopicCheckboxState('${categoryKey}', '${safeTopicName}', '${activeStateValue}')" class="px-2 py-1 rounded bg-[var(--bg-card)] border border-[var(--border-ui)] font-bold text-[10px] uppercase hover:border-indigo-500 cursor-pointer transition-all duration-150">${activeStateValue === 'DONE' ? '✅ Done' : 'Mark Done'}</button>
                             </div>
                         </div>
                     `;
@@ -1170,10 +1501,7 @@
             document.getElementById('stat-metrics-syllabus-percent-display').innerText = `${overallProgressPercentage}%`;
             document.getElementById('stat-metrics-syllabus-progress-bar').style.width = `${overallProgressPercentage}%`;
         }
-
-        // ====================================================================
         // DISTRIBUTED REMOTE BACKEND BROKER SERVICES (SUPABASE)
-        // ====================================================================
 
         function authenticateAppInitializationSequence() {
             const databaseRestUrl = document.getElementById('setup-credentials-supabase-url').value.trim();
@@ -1213,13 +1541,18 @@
             document.getElementById('identity-your-live-name').innerText = `${currentUserName} (You)`;
 
             // Explicit direct initialization parameters binding layout maps to prevent asynchronous UI lockups
-            supabaseClient = window.supabase.createClient(targetUrlString, targetAnonKeyToken);
+            supabaseClient = window.supabase.createClient(targetUrlString, targetAnonKeyToken, {
+                auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+                global: { fetch: (...args) => fetch(...args) }
+            });
             toastNotificationPopup("Authorization link secure. Connecting cloud server workspace.");
             
             await populateSubjectsInterfaceDropdowns();
             await triggerMasterDatabaseSynchronizationRefresh();
             await renderSyllabusMilestonesChecklistInterface();
-            establishRealtimeReplicationSubscriptionBroker(); 
+            establishRealtimeReplicationSubscriptionBroker();
+            fetchAndRenderLiveUsers();
+            setInterval(fetchAndRenderLiveUsers, 60000); 
         }
 
         async function triggerMasterDatabaseSynchronizationRefresh() {
@@ -1259,20 +1592,22 @@
                 });
 
                 document.getElementById('identity-buddy-live-name').innerText = activeBuddyIdentityName;
-                document.getElementById('versus-your-time-display').innerText = `${dailyAccumulatedMinutesYourself} Mins`;
-                document.getElementById('versus-buddy-time-display').innerText = `${dailyAccumulatedMinutesBuddyPeer} Mins`;
+                document.getElementById('versus-your-time-display').innerText = (function(m){return Math.floor(m/60)+'h '+(m%60).toString().padStart(2,'0')+'m';})(dailyAccumulatedMinutesYourself);
+                document.getElementById('versus-buddy-time-display').innerText = (function(m){return Math.floor(m/60)+'h '+(m%60).toString().padStart(2,'0')+'m';})(dailyAccumulatedMinutesBuddyPeer);
 
                 const statusBoxText = document.getElementById('versus-battle-status-alert');
                 if (dailyAccumulatedMinutesYourself > dailyAccumulatedMinutesBuddyPeer) {
-                    statusBoxText.innerText = `🔥 You are currently leading today's focus race by ${dailyAccumulatedMinutesYourself - dailyAccumulatedMinutesBuddyPeer} minutes!`;
+                    const leadDiff = dailyAccumulatedMinutesYourself - dailyAccumulatedMinutesBuddyPeer;
+                    statusBoxText.innerText = `🔥 You are leading by ${Math.floor(leadDiff/60)}h ${(leadDiff%60).toString().padStart(2,'0')}m! Keep it up 💪`;
                 } else if (dailyAccumulatedMinutesBuddyPeer > dailyAccumulatedMinutesYourself) {
-                    statusBoxText.innerText = `⚠️ ${activeBuddyIdentityName} is leading by ${dailyAccumulatedMinutesBuddyPeer - dailyAccumulatedMinutesYourself} minutes. Push harder!`;
+                    const behindDiff = dailyAccumulatedMinutesBuddyPeer - dailyAccumulatedMinutesYourself;
+                    statusBoxText.innerText = `⚠️ ${activeBuddyIdentityName} leads by ${Math.floor(behindDiff/60)}h ${(behindDiff%60).toString().padStart(2,'0')}m. Push harder!`;
                 } else {
                     statusBoxText.innerText = "🤝 Match Tied exactly down to the baseline. Zero deviation grid lock!";
                 }
 
-                const totalHoursFloatValue = (dailyAccumulatedMinutesYourself / 60).toFixed(1);
-                document.getElementById('stat-metrics-total-study-hours').innerText = `${totalHoursFloatValue} Hours`;
+                const totalHoursFloatValue = dailyAccumulatedMinutesYourself;
+                document.getElementById('stat-metrics-total-study-hours').innerText = (function(m){return Math.floor(m/60)+'h '+(m%60).toString().padStart(2,'0')+'m';})(totalHoursFloatValue);
                 document.getElementById('stat-metrics-mock-count-index').innerText = mockLogsData.filter(m => m.user_name === activeUserNameText).length;
 
                 const studyTableBodyNode = document.getElementById('table-body-focus-sessions-logs');
@@ -1286,9 +1621,12 @@
                         <td class="py-3 px-2 font-mono">${parsedTimestampText}</td>
                         <td class="py-3 px-2 font-bold">${row.user_name}</td>
                         <td class="py-3 px-2"><span class="px-2 py-0.5 rounded text-[10px] font-black text-white" style="background-color: ${SUBJECTS_CORE_PALETTE[row.subject_name || row.subject] || '#64748b'}">${row.subject_name || row.subject}</span></td>
-                        <td class="py-3 px-2 font-bold tabular-nums">${row.duration} Minutes</td>
-                        <td class="py-3 px-2 text-right">
-                            ${row.user_name === activeUserNameText ? `<button onclick="executeRecordDeletionSequencePipeline('sessions', '${row.id}')" class="text-rose-500 font-bold cursor-pointer text-[13px]">🗑️</button>` : ''}
+                        <td class="py-3 px-2 font-bold tabular-nums">${row.duration >= 60 ? Math.floor(row.duration/60)+'h '+(row.duration%60).toString().padStart(2,'0')+'m' : row.duration+'m'}</td>
+                        <td class="py-3 px-2 text-right flex gap-2 justify-end items-center">
+                            ${row.user_name === activeUserNameText ? `
+                                <button onclick='openEditSessionModal(${JSON.stringify(row)})' class="text-indigo-500 font-bold cursor-pointer text-[13px]">✏️</button>
+                                <button onclick="executeRecordDeletionSequencePipeline('sessions', '${row.id}')" class="text-rose-500 font-bold cursor-pointer text-[13px]">🗑️</button>
+                            ` : ''}
                         </td>
                     `;
                     studyTableBodyNode.appendChild(tableRowTrNode);
@@ -1307,10 +1645,13 @@
                         <td class="py-3 px-2 font-bold">${mockRow.name}</td>
                         <td class="py-3 px-2 font-semibold">${mockRow.user_name}</td>
                         <td class="py-3 px-2"><span class="px-1.5 py-0.5 bg-slate-200 rounded text-[10px] font-black">${mockRow.subject}</span></td>
-                        <td class="py-3 px-2 font-mono text-[11px]">QA:${mockRow.qa_score || 0} | GI:${mockRow.gi_score || 0} | EL:${mockRow.el_score || 0} | GA:${mockRow.ga_score || 0}</td>
+                        <td class="py-3 px-2 font-mono text-[11px]">QA:${mockRow.qa_score || 0} | GI:${mockRow.gi_score || 0} | EL:${mockRow.el_score || 0} | GA:${mockRow.ga_score || 0}${mockRow.cs_score != null ? ' | CS:'+mockRow.cs_score : ''}</td>
                         <td class="py-3 px-2"><span class="px-2 py-1 rounded-lg text-xs font-black ${performanceBadgeColorStyle}">${mockRow.score} / ${mockRow.total} (${rowPercentScore}%)</span></td>
-                        <td class="py-3 px-2 text-right">
-                            ${mockRow.user_name === activeUserNameText ? `<button onclick="executeRecordDeletionSequencePipeline('mock_tests', '${mockRow.id}')" class="text-rose-500 font-bold cursor-pointer text-[13px]">🗑️</button>` : ''}
+                        <td class="py-3 px-2 text-right flex gap-2 justify-end items-center">
+                            ${mockRow.user_name === activeUserNameText ? `
+                                <button onclick='openEditMockModal(${JSON.stringify(mockRow)})' class="text-indigo-500 font-bold cursor-pointer text-[13px]">✏️</button>
+                                <button onclick="executeRecordDeletionSequencePipeline('mock_tests', '${mockRow.id}')" class="text-rose-500 font-bold cursor-pointer text-[13px]">🗑️</button>
+                            ` : ''}
                         </td>
                     `;
                     mockTableBodyNode.appendChild(mockTrNode);
@@ -1319,35 +1660,198 @@
                 recomputeAndRenderDashboardCharts(studyLogsData.filter(s => s.user_name === activeUserNameText), mockLogsData.filter(m => m.user_name === activeUserNameText));
 
             } catch (error) {
-                console.error("Master dashboard refresh loop exception encountered:", error);
+                console.error("Master dashboard refresh loop exception encountered:", error?.message || error?.details || JSON.stringify(error));
+            }
+        }
+
+        // Auto-accumulate live study time every 60 seconds
+        let liveStudyAccumulatorIntervalId = null;
+
+        function startLiveStudyAccumulator() {
+            stopLiveStudyAccumulator();
+            liveStudyAccumulatorIntervalId = setInterval(async () => {
+                const mode = localStorage.getItem('pomodoro_active_session_mode') || 'STUDY';
+                const state = localStorage.getItem('pomodoro_engine_runtime_state') || 'STOPPED';
+                if (state !== 'RUNNING' || mode !== 'STUDY') return;
+                if (!supabaseClient) return;
+                const subject = document.getElementById('pomodoro-subject-dropdown').value || 'General';
+                const userName = localStorage.getItem('ssc_user_profile_name') || 'Warrior';
+                try {
+                    await supabaseClient.from('sessions').insert([{
+                        user_name: userName, duration: 1, subject: subject,
+                        subject_name: subject, note: 'Live auto-accumulate tick'
+                    }]);
+                } catch(e) { /* silent */ }
+            }, 60000);
+        }
+
+        function stopLiveStudyAccumulator() {
+            if (liveStudyAccumulatorIntervalId) {
+                clearInterval(liveStudyAccumulatorIntervalId);
+                liveStudyAccumulatorIntervalId = null;
             }
         }
 
         function establishRealtimeReplicationSubscriptionBroker() {
             if (!supabaseClient) return;
-
-            supabaseClient
-                .channel('global-database-sync-channel')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'sessions' }, (payload) => {
-                    triggerMasterDatabaseSynchronizationRefresh();
-                })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'mock_tests' }, (payload) => {
-                    triggerMasterDatabaseSynchronizationRefresh();
-                })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'custom_subjects' }, (payload) => {
-                    populateSubjectsInterfaceDropdowns();
-                })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'custom_topics' }, (payload) => {
-                    renderSyllabusMilestonesChecklistInterface();
-                })
-                .subscribe();
+            // Poll every 30s instead of Realtime WebSocket (avoids DataCloneError)
+            setInterval(() => triggerMasterDatabaseSynchronizationRefresh(), 30000);
+            setInterval(() => populateSubjectsInterfaceDropdowns(), 60000);
         }
 
-        // ====================================================================
-        // INTERACTIVE ATTACHMENTS LAYER & INITIALIZATION
-        // ====================================================================
+                async function fetchAndRenderLiveUsers() {
+            if (!supabaseClient) return;
+            try {
+                const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+                const { data, error } = await supabaseClient
+                    .from('sessions')
+                    .select('user_name, created_at')
+                    .gte('created_at', fiveMinAgo)
+                    .order('created_at', { ascending: false });
+                if (error) throw error;
+                const panel = document.getElementById('live-users-panel');
+                const list = document.getElementById('live-users-list');
+                const myName = localStorage.getItem('ssc_user_profile_name') || 'Warrior';
+                const seenUsers = new Set();
+                const liveUsers = [];
+                (data || []).forEach(row => {
+                    if (!seenUsers.has(row.user_name)) {
+                        seenUsers.add(row.user_name);
+                        liveUsers.push(row.user_name);
+                    }
+                });
+                if (liveUsers.length > 0) {
+                    panel.classList.remove('hidden');
+                    list.innerHTML = liveUsers.map(u => {
+                        const isYou = u === myName;
+                        return `<span class="px-2 py-1 rounded-full ${isYou ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400' : 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400'} font-bold">🟢 ${u}${isYou ? ' (You)' : ''}</span>`;
+                    }).join('');
+                } else {
+                    panel.classList.add('hidden');
+                }
+            } catch(err) {
+                console.error('Live users fetch failed:', err?.message || JSON.stringify(err));
+            }
+        }
 
-        window.addEventListener('DOMContentLoaded', () => {
+                let currentEditRecordId = null;
+        let currentEditTableName = null;
+
+        function openEditSessionModal(row) {
+            currentEditRecordId = row.id;
+            currentEditTableName = 'sessions';
+            document.getElementById('edit-modal-title').innerText = '✏️ Edit Study Session';
+            document.getElementById('edit-modal-fields').innerHTML = `
+                <div>
+                    <label class="text-xs font-bold uppercase text-[var(--text-muted)] block mb-1">Subject</label>
+                    <select id="edit-field-subject" class="w-full p-2.5 rounded-lg ui-input text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        ${Object.keys(SUBJECTS_CORE_PALETTE).map(s => `<option value="${s}" ${(row.subject_name||row.subject)===s?'selected':''}>${s}</option>`).join('')}
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-bold uppercase text-[var(--text-muted)] block mb-1">Duration (minutes)</label>
+                    <input id="edit-field-duration" type="number" min="1" max="480" value="${row.duration}"
+                        class="w-full p-2.5 rounded-lg ui-input text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="text-xs font-bold uppercase text-[var(--text-muted)] block mb-1">Note (optional)</label>
+                    <input id="edit-field-note" type="text" value="${row.note || ''}" placeholder="e.g. Algebra revision"
+                        class="w-full p-2.5 rounded-lg ui-input text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+            `;
+            document.getElementById('edit-record-modal-shroud').classList.remove('hidden');
+        }
+
+        function openEditMockModal(row) {
+            currentEditRecordId = row.id;
+            currentEditTableName = 'mock_tests';
+            const tier = row.subject || 'T1';
+            const maxMap = { T1: {qa:50,gi:50,el:50,ga:50}, T2: {qa:90,gi:90,el:135,ga:75}, SEC: {qa:50,gi:50,el:50,ga:50} };
+            const maxes = maxMap[tier] || maxMap.T1;
+            document.getElementById('edit-modal-title').innerText = '✏️ Edit Mock Test';
+            document.getElementById('edit-modal-fields').innerHTML = `
+                <div>
+                    <label class="text-xs font-bold uppercase text-[var(--text-muted)] block mb-1">Mock Name</label>
+                    <input id="edit-field-name" type="text" value="${row.name || ''}"
+                        class="w-full p-2.5 rounded-lg ui-input text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    ${['qa','gi','el','ga'].map(s => `
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-[var(--text-muted)] block mb-1">${s.toUpperCase()} <span class="text-[9px]">/ ${maxes[s]}</span></label>
+                        <input id="edit-field-${s}" type="number" min="0" max="${maxes[s]}" value="${row[s+'_score'] || 0}"
+                            oninput="clampMockInput(this,${maxes[s]})"
+                            class="w-full p-2 rounded-lg ui-input text-sm font-bold text-center focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>`).join('')}
+                </div>
+                ${tier === 'T2' ? `
+                <div class="flex items-center justify-between p-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200">
+                    <span class="text-xs font-bold text-amber-700 dark:text-amber-400">Computer Knowledge (Qualifying)</span>
+                    <div class="flex gap-2">
+                        <button id="edit-cs-pass" onclick="setEditCSQual('PASS')" class="px-3 py-1 rounded text-[10px] font-black uppercase ${row.cs_qualifying !== 'FAIL' ? 'bg-emerald-500 text-white border-emerald-500' : 'border border-[var(--border-ui)] text-[var(--text-muted)]'} cursor-pointer">Pass</button>
+                        <button id="edit-cs-fail" onclick="setEditCSQual('FAIL')" class="px-3 py-1 rounded text-[10px] font-black uppercase ${row.cs_qualifying === 'FAIL' ? 'bg-red-500 text-white border-red-500' : 'border border-[var(--border-ui)] text-[var(--text-muted)]'} cursor-pointer">Fail</button>
+                    </div>
+                </div>` : ''}
+            `;
+            document.getElementById('edit-record-modal-shroud').classList.remove('hidden');
+        }
+
+        let editCSQualState = 'PASS';
+        function setEditCSQual(state) {
+            editCSQualState = state;
+            const p = document.getElementById('edit-cs-pass');
+            const f = document.getElementById('edit-cs-fail');
+            if (!p || !f) return;
+            p.className = `px-3 py-1 rounded text-[10px] font-black uppercase cursor-pointer ${state === 'PASS' ? 'bg-emerald-500 text-white' : 'border border-[var(--border-ui)] text-[var(--text-muted)]'}`;
+            f.className = `px-3 py-1 rounded text-[10px] font-black uppercase cursor-pointer ${state === 'FAIL' ? 'bg-red-500 text-white' : 'border border-[var(--border-ui)] text-[var(--text-muted)]'}`;
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-record-modal-shroud').classList.add('hidden');
+            currentEditRecordId = null;
+            currentEditTableName = null;
+        }
+
+        async function saveEditedRecord() {
+            if (!supabaseClient || !currentEditRecordId || !currentEditTableName) return;
+            try {
+                let updatePayload = {};
+                if (currentEditTableName === 'sessions') {
+                    const dur = parseInt(document.getElementById('edit-field-duration').value);
+                    if (isNaN(dur) || dur < 1) { toastNotificationPopup("Duration must be at least 1 minute.", "error"); return; }
+                    updatePayload = {
+                        subject: document.getElementById('edit-field-subject').value,
+                        subject_name: document.getElementById('edit-field-subject').value,
+                        duration: dur,
+                        note: document.getElementById('edit-field-note').value
+                    };
+                } else {
+                    const qa = parseInt(document.getElementById('edit-field-qa').value) || 0;
+                    const gi = parseInt(document.getElementById('edit-field-gi').value) || 0;
+                    const el = parseInt(document.getElementById('edit-field-el').value) || 0;
+                    const ga = parseInt(document.getElementById('edit-field-ga').value) || 0;
+                    updatePayload = {
+                        name: document.getElementById('edit-field-name').value,
+                        qa_score: qa, gi_score: gi, el_score: el, ga_score: ga,
+                        score: qa + gi + el + ga,
+                        cs_qualifying: editCSQualState
+                    };
+                }
+                const { error } = await supabaseClient
+                    .from(currentEditTableName)
+                    .update(updatePayload)
+                    .eq('id', currentEditRecordId);
+                if (error) throw error;
+                toastNotificationPopup("✅ Record updated successfully!");
+                closeEditModal();
+                await triggerMasterDatabaseSynchronizationRefresh();
+            } catch (err) {
+                console.error("Edit save failed:", err?.message || JSON.stringify(err));
+                toastNotificationPopup("Failed to save changes.", "error");
+            }
+        }
+
+                window.addEventListener('DOMContentLoaded', () => {
             initializeSystemThemeEngine();
             generateCompositeScoreFormsLayout();
             
