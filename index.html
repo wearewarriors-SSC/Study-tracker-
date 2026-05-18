@@ -191,7 +191,7 @@
 
             <div class="dashboard-grid grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="custom-card p-6">
-                    <p class="text-xs font-black text-[var(--text-muted)] tracking-wider uppercase">🔥 Today's Cumulative Study Volume</p>
+                    <p class="text-xs font-black text-[var(--text-muted)] tracking-wider uppercase">📐 Today's Cumulative Study Volume</p>
                     <h3 id="stat-metrics-total-study-hours" class="text-4xl font-black tracking-tight mt-2 text-indigo-600 dark:text-indigo-400">0.0 Hours</h3>
                     <p class="text-xs mt-1 text-[var(--text-muted)]">Real-time sessions logs aggregate computation scale.</p>
                 </div>
@@ -224,7 +224,6 @@
                 </div>
             </div>
 
-            <!-- Subject Performance Analysis -->
             <div class="custom-card p-6">
                 <div class="flex items-center justify-between mb-4 border-b border-[var(--border-ui)] pb-3">
                     <div>
@@ -415,7 +414,6 @@
 
     <button class="theme-toggle-fab w-14 h-14 rounded-full flex items-center justify-center text-xl cursor-pointer hover:scale-105 active:scale-95 transition-all duration-150 shadow-2xl" id="themeToggleButton" onclick="toggleSystemThemeModeConfiguration()">🌙</button>
 
-    <!-- Edit Record Modal -->
     <div id="edit-record-modal-shroud" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 hidden">
         <div class="bg-[var(--bg-card)] rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
             <div class="flex items-center justify-between">
@@ -522,7 +520,7 @@
             ]
         };
 
-                function cleanSlateCanvasElementContext(canvasElementId) {
+        function cleanSlateCanvasElementContext(canvasElementId) {
             const currentElement = document.getElementById(canvasElementId);
             if (!currentElement) return null;
             const contextPointer = currentElement.getContext('2d');
@@ -634,7 +632,7 @@
             renderSubjectPerformanceAnalysis(mockSheetsLogsArray);
         }
 
-                function renderSubjectPerformanceAnalysis(mockSheetsLogsArray) {
+        function renderSubjectPerformanceAnalysis(mockSheetsLogsArray) {
             const SUBJECT_CONFIG = {
                 qa: { label: 'Quantitative Aptitude', max: { T1: 50, T2: 90, SEC: 50 }, color: '#4f46e5', short: 'QA' },
                 gi: { label: 'Reasoning Intelligence', max: { T1: 50, T2: 90, SEC: 50 }, color: '#ec4899', short: 'GI' },
@@ -642,7 +640,6 @@
                 ga: { label: 'General Awareness',      max: { T1: 50, T2: 75, SEC: 50 }, color: '#f59e0b', short: 'GA' }
             };
 
-            // Accumulate per-subject scores across all mocks
             const subjectAccumulator = {};
             Object.keys(SUBJECT_CONFIG).forEach(key => {
                 subjectAccumulator[key] = { scores: [], percentages: [] };
@@ -651,7 +648,7 @@
             const sorted = [...mockSheetsLogsArray].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
             sorted.forEach(mock => {
-                const tier = mock.subject || 'T1'; // subject field stores tier
+                const tier = mock.subject || 'T1'; 
                 Object.keys(SUBJECT_CONFIG).forEach(key => {
                     const rawScore = mock[`${key}_score`];
                     if (rawScore == null || rawScore === 0 && mock[`qa_score`] == null) return;
@@ -663,7 +660,6 @@
                 });
             });
 
-            // Compute stats per subject
             const stats = {};
             Object.keys(SUBJECT_CONFIG).forEach(key => {
                 const percs = subjectAccumulator[key].percentages;
@@ -683,7 +679,6 @@
                 stats[key] = { avg, trend, trendIcon, verdict, count: percs.length, best: Math.max(...percs), worst: Math.min(...percs) };
             });
 
-            // ── Radar Chart ──
             const radarLabels = Object.values(SUBJECT_CONFIG).map(s => s.short);
             const radarData = Object.keys(SUBJECT_CONFIG).map(k => stats[k]?.avg || 0);
             const radarColors = Object.values(SUBJECT_CONFIG).map(s => s.color);
@@ -721,7 +716,6 @@
                 }
             });
 
-            // ── Performance Cards ──
             const grid = document.getElementById('subject-performance-cards-grid');
             if (!grid) return;
 
@@ -759,7 +753,7 @@
             }).join('');
         }
 
-                function switchNavigationRouteTab(targetTabId) {
+        function switchNavigationRouteTab(targetTabId) {
             activeRouteTabId = targetTabId;
             const tabs = ['dashboard', 'timer', 'mocks', 'syllabus'];
             
@@ -813,7 +807,6 @@
                 setTimeout(() => notificationNode.remove(), 300);
             }, 4000);
         }
-        // BACKGROUND RESILIENT POMODORO TIMER WEB WORKER CORES ENGINE
 
         function initializeNativeAudioPlaybackEngine() {
             if (!nativeAudioContextRegistry) {
@@ -920,8 +913,6 @@
             dashboardBadge.innerText = activeInternalModeContext === 'STUDY' ? "🎯 HYPERFOCUS WORK BLOCK ACTIVE" : "🍃 REST COMPLIANCE INTERVAL ACTIVE";
 
             timerWebWorkerThread.onmessage = function(event) {
-                // Use setTimeout(0) to fully detach from the postMessage structured-clone
-                // cycle — prevents DataCloneError when Supabase Headers exist on window scope
                 setTimeout(function() {
                     const countSecondsLeft = event.data.secondsRemaining;
                     localStorage.setItem('pomodoro_seconds_counter_remaining', countSecondsLeft.toString());
@@ -990,7 +981,6 @@
             localStorage.setItem('pomodoro_seconds_counter_remaining', (nextDurationMinutesInterval * 60).toString());
             localStorage.setItem('pomodoro_engine_runtime_state', 'STOPPED');
 
-            // After REST ends → reset to STUDY ready state, require manual Start
             syncChronometerDisplayDigits(nextDurationMinutesInterval * 60);
             const badge = document.getElementById('pomodoro-state-badge');
             const startBtn = document.getElementById('btn-pomodoro-primary-toggle');
@@ -1000,7 +990,6 @@
                 document.getElementById('btn-pomodoro-done-early').classList.add('hidden');
                 stopLiveStudyAccumulator();
             } else {
-                // REST or LONG_REST: auto-start the break
                 const postTransitionTargetWallclockTimestamp = Date.now() + (nextDurationMinutesInterval * 60 * 1000);
                 localStorage.setItem('pomodoro_target_wallclock_cutoff', postTransitionTargetWallclockTimestamp.toString());
                 setTimeout(() => spawnContinuousWebWorkerCountdownLoop(postTransitionTargetWallclockTimestamp), 500);
@@ -1041,7 +1030,6 @@
                 toastNotificationPopup(`✅ ${elapsedMinutes} min session recorded locally.`);
             }
 
-            // Count streak and stop timer
             let totalStreaks = parseInt(localStorage.getItem('pomodoro_completed_streaks_index') || '0') + 1;
             localStorage.setItem('pomodoro_completed_streaks_index', totalStreaks.toString());
             document.getElementById('pomodoro-streak-counter-value').innerText = totalStreaks;
@@ -1108,7 +1096,6 @@
                 restoreResilientTimerStateOnLifecycleReload();
             }
         });
-        // DYNAMIC SUBJECTS MANAGEMENT MATRIX CONTROLLER
 
         async function fetchCustomSubjectsFromCloud() {
             if (!supabaseClient) return [];
@@ -1161,16 +1148,16 @@
                 }
             }
         }
-        // COMPOSITE MOCK SCORE MANAGEMENT CONTROLLER (SINGLE-PAGE LOGGER)
 
         function setMockExaminationTier(targetTierStringCode) {
             activeExaminationTier = targetTierStringCode;
             const btnT1 = document.getElementById('btn-tier-toggle-t1');
             const btnT2 = document.getElementById('btn-tier-toggle-t2');
-
             const btnSec = document.getElementById('btn-tier-toggle-sec');
+            
             const activeClass = 'py-2 font-black text-xs rounded-lg uppercase tracking-wider border border-indigo-600 bg-indigo-600 text-white transition-all duration-150 shadow-md cursor-pointer';
             const inactiveClass = 'py-2 font-black text-xs rounded-lg uppercase tracking-wider border border-[var(--border-ui)] text-[var(--text-muted)] bg-[var(--bg-primary)] hover:text-[var(--text-main)] transition-all duration-150 shadow-md cursor-pointer';
+            
             btnT1.className = targetTierStringCode === 'T1' ? activeClass : inactiveClass;
             btnT2.className = targetTierStringCode === 'T2' ? activeClass : inactiveClass;
             btnSec.className = targetTierStringCode === 'SEC' ? activeClass : inactiveClass;
@@ -1199,8 +1186,8 @@
                 ],
                 "SEC": [
                     { id: "qa", name: "Quantitative Aptitude", max: 50 },
-                    { id: "el", name: "English Language", max: 50 },
                     { id: "gi", name: "Reasoning Intelligence", max: 50 },
+                    { id: "el", name: "English Language", max: 50 },
                     { id: "ga", name: "General Awareness", max: 50 }
                 ]
             };
@@ -1223,7 +1210,6 @@
                 placementContainer.appendChild(row);
             });
 
-            // T2: add Computer Knowledge qualifying toggle (not scored)
             if (activeExaminationTier === 'T2') {
                 const csRow = document.createElement('div');
                 csRow.className = "flex items-center justify-between gap-4 pt-2 border-t border-[var(--border-ui)] mt-1";
@@ -1242,11 +1228,11 @@
                 placementContainer.appendChild(csRow);
             }
 
-            // SEC: add info label
             if (activeExaminationTier === 'SEC') {
                 const infoRow = document.createElement('div');
-                infoRow.className = "text-[10px] text-indigo-500 font-bold pt-1";
-                infoRow.innerText = "📊 Enter marks for each subject separately to track individual performance.";
+                infoRow.className = "text-[10px] text-indigo-500 font-bold pt-1 text-center";
+                infoRow.id = "sectional-dynamic-info-label";
+                infoRow.innerText = "📊 Fill any section. Max score scales dynamically by 50 per active subject.";
                 placementContainer.appendChild(infoRow);
             }
 
@@ -1279,18 +1265,31 @@
             const inputElementsQueryArray = document.querySelectorAll(`[id^="mock-segment-input-"]`);
             
             let accumulatedEarnedScore = 0;
-            // For sectional, max = whichever section has a value entered
-            let maximumTheoreticalTotalBaseline;
-            if (activeTierSelection === 'T1') maximumTheoreticalTotalBaseline = 200;
-            else if (activeTierSelection === 'T2') maximumTheoreticalTotalBaseline = 390;
-            else if (activeTierSelection === 'SEC') {
-                maximumTheoreticalTotalBaseline = 50; // each subject is out of 50
-            }
-            else maximumTheoreticalTotalBaseline = 390; 
+            let maximumTheoreticalTotalBaseline = 0;
+            let activeSecCount = 0;
 
             inputElementsQueryArray.forEach(inputNode => {
-                accumulatedEarnedScore += parseInt(inputNode.value) || 0;
+                const val = parseInt(inputNode.value);
+                if (!isNaN(val) && inputNode.value !== "") {
+                    accumulatedEarnedScore += val;
+                    if (activeTierSelection === 'SEC') {
+                        activeSecCount++;
+                    }
+                }
             });
+
+            if (activeTierSelection === 'T1') {
+                maximumTheoreticalTotalBaseline = 200;
+            } else if (activeTierSelection === 'T2') {
+                maximumTheoreticalTotalBaseline = 390;
+            } else if (activeTierSelection === 'SEC') {
+                maximumTheoreticalTotalBaseline = activeSecCount > 0 ? activeSecCount * 50 : 50;
+                
+                const infoLabel = document.getElementById('sectional-dynamic-info-label');
+                if (infoLabel) {
+                    infoLabel.innerText = `🎯 Scaling Baseline: ${activeSecCount} Subject(s) Active (${maximumTheoreticalTotalBaseline} Marks Max)`;
+                }
+            }
 
             document.getElementById('display-mock-live-computed-total-score').innerText = `${accumulatedEarnedScore} / ${maximumTheoreticalTotalBaseline}`;
         }
@@ -1305,14 +1304,19 @@
                 return;
             }
 
-            const qaMarks = parseInt(document.getElementById('mock-segment-input-qa')?.value) || 0;
-            const giMarks = parseInt(document.getElementById('mock-segment-input-gi')?.value) || 0;
-            const elMarks = parseInt(document.getElementById('mock-segment-input-el')?.value) || 0;
-            const gaMarks = parseInt(document.getElementById('mock-segment-input-ga')?.value) || 0;
+            const qaInput = document.getElementById('mock-segment-input-qa');
+            const giInput = document.getElementById('mock-segment-input-gi');
+            const elInput = document.getElementById('mock-segment-input-el');
+            const gaInput = document.getElementById('mock-segment-input-ga');
 
-            // Validate none exceed max
+            const qaMarks = (qaInput && qaInput.value !== "") ? parseInt(qaInput.value) : null;
+            const giMarks = (giInput && giInput.value !== "") ? parseInt(giInput.value) : null;
+            const elMarks = (elInput && elInput.value !== "") ? parseInt(elInput.value) : null;
+            const gaMarks = (gaInput && gaInput.value !== "") ? parseInt(gaInput.value) : null;
+
             const inputs = document.querySelectorAll('[id^="mock-segment-input-"]');
             for (const inp of inputs) {
+                if (inp.value === "") continue;
                 const val = parseInt(inp.value) || 0;
                 const max = parseInt(inp.max) || 0;
                 if (val > max) {
@@ -1324,27 +1328,33 @@
 
             let aggregateCumulativeScore, totalScaleMaximumBaseline;
             if (activeExaminationTier === 'SEC') {
-                // SEC: each row is a separate sectional attempt, score = sum of entered, total = 50 * count of filled
-                const filledCount = [qaMarks, giMarks, elMarks, gaMarks].filter(v => v > 0).length || 1;
-                aggregateCumulativeScore = qaMarks + giMarks + elMarks + gaMarks;
+                const scoresList = [qaMarks, giMarks, elMarks, gaMarks].filter(v => v !== null);
+                const filledCount = scoresList.length;
+                
+                if (filledCount === 0) {
+                    toastNotificationPopup("Please enter marks in at least one subject row.", "error");
+                    return;
+                }
+                
+                aggregateCumulativeScore = scoresList.reduce((a, b) => a + b, 0);
                 totalScaleMaximumBaseline = 50 * filledCount;
             } else {
-                aggregateCumulativeScore = qaMarks + giMarks + elMarks + gaMarks;
+                aggregateCumulativeScore = (qaMarks || 0) + (giMarks || 0) + (elMarks || 0) + (gaMarks || 0);
                 totalScaleMaximumBaseline = activeExaminationTier === 'T1' ? 200 : 390;
             }
 
             if (supabaseClient) {
                 try {
                     const insertPayload = {
-                            user_name: currentActiveUserProfile,
-                            name: sanitizedMockReferenceTitle,
-                            subject: activeExaminationTier,
-                            score: aggregateCumulativeScore,
-                            total: totalScaleMaximumBaseline,
-                            qa_score: qaMarks,
-                            gi_score: giMarks,
-                            el_score: elMarks,
-                            ga_score: gaMarks
+                        user_name: currentActiveUserProfile,
+                        name: sanitizedMockReferenceTitle,
+                        subject: activeExaminationTier, 
+                        score: aggregateCumulativeScore,
+                        total: totalScaleMaximumBaseline,
+                        qa_score: qaMarks !== null ? qaMarks : 0,
+                        gi_score: giMarks !== null ? giMarks : 0,
+                        el_score: elMarks !== null ? elMarks : 0,
+                        ga_score: gaMarks !== null ? gaMarks : 0
                     };
                     if (activeExaminationTier === 'T2') {
                         insertPayload.cs_qualifying = csQualifyingState;
@@ -1390,7 +1400,6 @@
                 }
             }
         }
-        // TARGET SYLLABUS CHECKLIST GRAPHICS RENDER ENGINE
 
         async function fetchSyllabusStatesFromCloud() {
             if (!supabaseClient) return {};
@@ -1517,7 +1526,6 @@
             document.getElementById('stat-metrics-syllabus-percent-display').innerText = `${overallProgressPercentage}%`;
             document.getElementById('stat-metrics-syllabus-progress-bar').style.width = `${overallProgressPercentage}%`;
         }
-        // DISTRIBUTED REMOTE BACKEND BROKER SERVICES (SUPABASE)
 
         function authenticateAppInitializationSequence() {
             const databaseRestUrl = document.getElementById('setup-credentials-supabase-url').value.trim();
@@ -1556,7 +1564,6 @@
             document.getElementById('active-profile-identity-banner').classList.remove('hidden');
             document.getElementById('identity-your-live-name').innerText = `${currentUserName} (You)`;
 
-            // Explicit direct initialization parameters binding layout maps to prevent asynchronous UI lockups
             supabaseClient = window.supabase.createClient(targetUrlString, targetAnonKeyToken, {
                 auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
                 global: { fetch: (...args) => fetch(...args) }
@@ -1585,6 +1592,10 @@
                     .order('created_at', { ascending: false });
 
                 if (studyQueryError) throw studyQueryError;
+
+                const { data: liveTicks, error: liveError } = await supabaseClient
+                    .from('live_battlegrounds')
+                    .select('*');
 
                 const { data: mockLogsData, error: mockQueryError } = await supabaseClient
                     .from('mock_tests')
@@ -1629,17 +1640,51 @@
                 const studyTableBodyNode = document.getElementById('table-body-focus-sessions-logs');
                 studyTableBodyNode.innerHTML = '';
                 
+                // --- SMART AGGREGATION PATTERN ARCHITECTURE ENGINE ---
+                const finalRenderedRowsArray = [];
+                const legacyTicksAccumulatorTracker = {};
+
                 studyLogsData.forEach(row => {
-                    const parsedTimestampText = new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const currentSubjectKey = row.subject_name || row.subject || "Unmapped Domain";
+                    
+                    if (row.note === 'Live auto-accumulate tick') {
+                        const compoundingUniqueKey = `${row.user_name}||${currentSubjectKey}`;
+                        
+                        if (!legacyTicksAccumulatorTracker[compoundingUniqueKey]) {
+                            legacyTicksAccumulatorTracker[compoundingUniqueKey] = {
+                                ...row,
+                                duration: 0,
+                                isAggregatedRecordBlock: true
+                            };
+                            finalRenderedRowsArray.push(legacyTicksAccumulatorTracker[compoundingUniqueKey]);
+                        }
+                        legacyTicksAccumulatorTracker[compoundingUniqueKey].duration += parseInt(row.duration || 0);
+                    } else {
+                        finalRenderedRowsArray.push({
+                            ...row,
+                            isAggregatedRecordBlock: false
+                        });
+                    }
+                });
+
+                finalRenderedRowsArray.forEach(row => {
+                    const parsedTimestampText = row.isAggregatedRecordBlock 
+                        ? "🔄 Auto Sync" 
+                        : new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        
+                    const dynamicSubjectLabelStr = row.isAggregatedRecordBlock 
+                        ? `${row.subject_name || row.subject} (Continuous Accumulation)` 
+                        : (row.subject_name || row.subject);
+
                     const tableRowTrNode = document.createElement('tr');
-                    tableRowTrNode.className = "border-b border-[var(--border-ui)] text-xs text-[var(--text-main)]";
+                    tableRowTrNode.className = "border-b border-[var(--border-ui)] text-xs text-[var(--text-main)]" + (row.isAggregatedRecordBlock ? " bg-indigo-50/20 dark:bg-indigo-950/10" : "");
                     tableRowTrNode.innerHTML = `
-                        <td class="py-3 px-2 font-mono">${parsedTimestampText}</td>
+                        <td class="py-3 px-2 font-mono ${row.isAggregatedRecordBlock ? 'text-indigo-500 font-bold' : ''}">${parsedTimestampText}</td>
                         <td class="py-3 px-2 font-bold">${row.user_name}</td>
-                        <td class="py-3 px-2"><span class="px-2 py-0.5 rounded text-[10px] font-black text-white" style="background-color: ${SUBJECTS_CORE_PALETTE[row.subject_name || row.subject] || '#64748b'}">${row.subject_name || row.subject}</span></td>
+                        <td class="py-3 px-2"><span class="px-2 py-0.5 rounded text-[10px] font-black text-white" style="background-color: ${SUBJECTS_CORE_PALETTE[row.subject_name || row.subject] || '#64748b'}">${dynamicSubjectLabelStr}</span></td>
                         <td class="py-3 px-2 font-bold tabular-nums">${row.duration >= 60 ? Math.floor(row.duration/60)+'h '+(row.duration%60).toString().padStart(2,'0')+'m' : row.duration+'m'}</td>
                         <td class="py-3 px-2 text-right flex gap-2 justify-end items-center">
-                            ${row.user_name === activeUserNameText ? `
+                            ${row.user_name === activeUserNameText && !row.isAggregatedRecordBlock ? `
                                 <button onclick='openEditSessionModal(${JSON.stringify(row)})' class="text-indigo-500 font-bold cursor-pointer text-[13px]">✏️</button>
                                 <button onclick="executeRecordDeletionSequencePipeline('sessions', '${row.id}')" class="text-rose-500 font-bold cursor-pointer text-[13px]">🗑️</button>
                             ` : ''}
@@ -1661,7 +1706,7 @@
                         <td class="py-3 px-2 font-bold">${mockRow.name}</td>
                         <td class="py-3 px-2 font-semibold">${mockRow.user_name}</td>
                         <td class="py-3 px-2"><span class="px-1.5 py-0.5 bg-slate-200 rounded text-[10px] font-black">${mockRow.subject}</span></td>
-                        <td class="py-3 px-2 font-mono text-[11px]">QA:${mockRow.qa_score || 0} | GI:${mockRow.gi_score || 0} | EL:${mockRow.el_score || 0} | GA:${mockRow.ga_score || 0}${mockRow.cs_score != null ? ' | CS:'+mockRow.cs_score : ''}</td>
+                        <td class="py-3 px-2 font-mono text-[11px]">QA:${mockRow.qa_score || 0} | GI:${mockRow.gi_score || 0} | EL:${mockRow.el_score || 0} | GA:${mockRow.ga_score || 0}</td>
                         <td class="py-3 px-2"><span class="px-2 py-1 rounded-lg text-xs font-black ${performanceBadgeColorStyle}">${mockRow.score} / ${mockRow.total} (${rowPercentScore}%)</span></td>
                         <td class="py-3 px-2 text-right flex gap-2 justify-end items-center">
                             ${mockRow.user_name === activeUserNameText ? `
@@ -1680,7 +1725,6 @@
             }
         }
 
-        // Auto-accumulate live study time every 60 seconds
         let liveStudyAccumulatorIntervalId = null;
 
         function startLiveStudyAccumulator() {
@@ -1690,14 +1734,17 @@
                 const state = localStorage.getItem('pomodoro_engine_runtime_state') || 'STOPPED';
                 if (state !== 'RUNNING' || mode !== 'STUDY') return;
                 if (!supabaseClient) return;
+                
                 const subject = document.getElementById('pomodoro-subject-dropdown').value || 'General';
                 const userName = localStorage.getItem('ssc_user_profile_name') || 'Warrior';
+                
                 try {
-                    await supabaseClient.from('sessions').insert([{
-                        user_name: userName, duration: 1, subject: subject,
-                        subject_name: subject, note: 'Live auto-accumulate tick'
-                    }]);
-                } catch(e) { /* silent */ }
+                    await supabaseClient.from('live_battlegrounds').upsert([{
+                        user_name: userName,
+                        current_subject: subject,
+                        last_active_tick: new Date().toISOString()
+                    }], { onConflict: 'user_name' });
+                } catch(e) { /* silent catch to ensure timer continuity */ }
             }, 60000);
         }
 
@@ -1710,24 +1757,24 @@
 
         function establishRealtimeReplicationSubscriptionBroker() {
             if (!supabaseClient) return;
-            // Poll every 30s instead of Realtime WebSocket (avoids DataCloneError)
             setInterval(() => triggerMasterDatabaseSynchronizationRefresh(), 30000);
             setInterval(() => populateSubjectsInterfaceDropdowns(), 60000);
         }
 
-                async function fetchAndRenderLiveUsers() {
+        async function fetchAndRenderLiveUsers() {
             if (!supabaseClient) return;
             try {
                 const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
                 const { data, error } = await supabaseClient
-                    .from('sessions')
-                    .select('user_name, created_at')
-                    .gte('created_at', fiveMinAgo)
-                    .order('created_at', { ascending: false });
+                    .from('live_battlegrounds')
+                    .select('user_name, last_active_tick')
+                    .gte('last_active_tick', fiveMinAgo);
+                    
                 if (error) throw error;
                 const panel = document.getElementById('live-users-panel');
                 const list = document.getElementById('live-users-list');
                 const myName = localStorage.getItem('ssc_user_profile_name') || 'Warrior';
+                
                 const seenUsers = new Set();
                 const liveUsers = [];
                 (data || []).forEach(row => {
@@ -1736,6 +1783,7 @@
                         liveUsers.push(row.user_name);
                     }
                 });
+                
                 if (liveUsers.length > 0) {
                     panel.classList.remove('hidden');
                     list.innerHTML = liveUsers.map(u => {
@@ -1746,11 +1794,11 @@
                     panel.classList.add('hidden');
                 }
             } catch(err) {
-                console.error('Live users fetch failed:', err?.message || JSON.stringify(err));
+                console.error('Live users fetch failed:', err);
             }
         }
 
-                let currentEditRecordId = null;
+        let currentEditRecordId = null;
         let currentEditTableName = null;
 
         function openEditSessionModal(row) {
@@ -1796,7 +1844,7 @@
                     <div>
                         <label class="text-[10px] font-bold uppercase text-[var(--text-muted)] block mb-1">${s.toUpperCase()} <span class="text-[9px]">/ ${maxes[s]}</span></label>
                         <input id="edit-field-${s}" type="number" min="0" max="${maxes[s]}" value="${row[s+'_score'] || 0}"
-                            oninput="clampMockInput(this,${maxes[s]})"
+                            oninput="clampMockInput(this,maxes[s])"
                             class="w-full p-2 rounded-lg ui-input text-sm font-bold text-center focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>`).join('')}
                 </div>
@@ -1867,11 +1915,10 @@
             }
         }
 
-                window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', () => {
             initializeSystemThemeEngine();
             generateCompositeScoreFormsLayout();
             
-            // Hardbound strict inline registration button reference handler to bypass standard formatting gaps
             document.getElementById('btn-establish-pipeline-trigger').onclick = authenticateAppInitializationSequence;
             
             checkExistingSavedCredentialsPipeline(); 
@@ -1880,3 +1927,4 @@
     </script>
 </body>
 </html>
+
