@@ -81,7 +81,7 @@ function setupLocalTimerInteractions() {
         localStorage.setItem('timer_running_state', 'RUNNING');
         localStorage.setItem('timer_initial_duration', durationMinutes);
         
-        // Instant Real-time Broadcast Trigger for Live Synchronized Battlegrounds (Eliminates 15s delay)
+        // Instant Real-time Broadcast Trigger for Live Synchronized Battlegrounds
         broadcastLiveActivityHeartbeat(durationMinutes + " Min Focus Block");
         
         console.log(`Focus block tracking initiated: ${durationMinutes} minutes.`);
