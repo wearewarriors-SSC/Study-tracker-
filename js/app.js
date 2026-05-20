@@ -144,3 +144,33 @@ document.addEventListener("DOMContentLoaded", () => {
     window.AppLifecycleEngine = new ApplicationLifecycleEngine();
     window.AppLifecycleEngine.initializeLifecycleWiring();
 });
+
+// Automated Real-Time Hot Bootstrapping Sync Script
+if (typeof window.fetchAndRenderLiveUsers !== 'function') {
+    window.fetchAndRenderLiveUsers = async function() {
+        const client = window.currentSupabaseClient;
+        const container = document.getElementById("live-battleground-users");
+        if (!client || !container) return;
+        try {
+            const { data, error } = await client.from("live_battlegrounds").select("*");
+            if (error) throw error;
+            container.innerHTML = "";
+            if (data.length === 0) {
+                container.innerHTML = `<p class="text-gray-500 italic">No warriors active right now.</p>`;
+                return;
+            }
+            data.forEach(user => {
+                const isMe = user.username === window.currentIdentityUser;
+                const dotColor = isMe ? "bg-indigo-500" : "bg-cyan-400";
+                container.innerHTML += `
+                    <div class="flex items-center justify-between p-2 bg-slate-950/40 rounded-lg border border-slate-800/60">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-2 h-2 rounded-full ${dotColor} animate-pulse"></span>
+                            <span class="font-medium text-gray-200">${user.username} ${isMe ? '(You)' : ''}</span>
+                        </div>
+                        <span class="text-xs text-gray-400">Active Now</span>
+                    </div>`;
+            });
+        } catch (e) { console.warn("Live rendering missed: ", e); }
+    };
+}
