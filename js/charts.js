@@ -114,7 +114,7 @@ class ChartVisualizationCanvasManager {
             datasetsAssemblyArray.push({
                 label: isMe ? `🥇 You (${userKey})` : `👤 Warrior: ${userKey}`,
                 data: [(qaAvg / 100) * 90, (giAvg / 100) * 90, (elAvg / 100) * 90, (gaAvg / 100) * 90],
-                backgroundColor: isMe ? 'rgba(79, 70, 229, 0.15)' : `${clr}22`,
+                backgroundColor: isMe ? 'rgba(79, 70, 229, 0.05)' : `${clr}44`, fill: true, pointBorderWidth: isMe ? 2 : 3, pointHoverRadius: 6,
                 borderColor: clr, borderWidth: isMe ? 3.5 : 2, pointBackgroundColor: clr, pointBorderColor: '#ffffff', pointRadius: isMe ? 5 : 4
             });
         }
