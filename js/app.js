@@ -87,10 +87,13 @@ class ApplicationLifecycleEngine {
         document.getElementById('app-credentials-setup-modal-shroud').classList.add('hidden');
         await this.populateSubjectsInterfaceDropdowns();
         this.adaptScientificPomodoroRecommendation();
+        
+        // Instant Boot execution sequence to populate cards and graphs immediately
         await this.triggerMasterDatabaseSynchronizationRefresh();
         await this.renderSyllabusMilestonesChecklistInterface();
+        await this.fetchAndRenderLiveUsers();
 
-        this.fetchAndRenderLiveUsers();
+        // Balanced active polling execution rates
         setInterval(() => this.triggerMasterDatabaseSynchronizationRefresh(), 15000);
         setInterval(() => this.fetchAndRenderLiveUsers(), 15000);
         setInterval(() => this.populateSubjectsInterfaceDropdowns(), 60000);
@@ -310,7 +313,7 @@ class ApplicationLifecycleEngine {
         }
     }
 
-    togglePomodoroEngineState() {
+    async togglePomodoroEngineState() {
         this.initializeNativeAudioPlaybackEngine();
         const btn = document.getElementById('btn-pomodoro-primary-toggle');
         const state = localStorage.getItem('pomodoro_engine_runtime_state') || 'STOPPED';
@@ -335,7 +338,19 @@ class ApplicationLifecycleEngine {
             btn.innerText = "Pause Block";
             const isStudy = (localStorage.getItem('pomodoro_active_session_mode') || 'STUDY') === 'STUDY';
             if (isStudy) document.getElementById('btn-pomodoro-done-early').classList.remove('hidden');
-            if (isStudy) this.startLiveStudyAccumulator();
+            
+            // Core Instant Sync Logic: Force immediate DB write when timer starts
+            if (isStudy) {
+                this.startLiveStudyAccumulator();
+                if (supabaseService.client) {
+                    const subject = document.getElementById('pomodoro-subject-dropdown').value || 'General';
+                    const userName = supabaseService.getSavedCredentials().userName;
+                    await supabaseService.client.from('live_battlegrounds').upsert([{
+                        user_name: userName, current_subject: subject, last_active_tick: new Date().toISOString()
+                    }], { onConflict: 'user_name' });
+                    this.fetchAndRenderLiveUsers(); // Re-render local display instantly
+                }
+            }
             this.spawnContinuousWebWorkerCountdownLoop(cutoff);
         }
     }
@@ -464,6 +479,7 @@ class ApplicationLifecycleEngine {
             await supabaseService.client.from('live_battlegrounds').upsert([{
                 user_name: userName, current_subject: subject, last_active_tick: new Date().toISOString()
             }], { onConflict: 'user_name' });
+            this.fetchAndRenderLiveUsers(); // Instantly pull updates every minute
         }, 60000);
     }
 
