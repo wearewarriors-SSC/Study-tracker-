@@ -108,7 +108,7 @@ class ChartVisualizationCanvasManager {
             const elAvg = calcAvg(datasetAggregationMap[userKey].EL); const gaAvg = calcAvg(datasetAggregationMap[userKey].GA);
 
             const isMe = userKey === currentUserName;
-            const clr = isMe ? '#4f46e5' : hexColors[loopIdx % hexColors.length];
+            const clr = isMe ? '#4f46e5' : hexColors[loopIdx % hexColors.length]; loopIdx++; loopIdx++;
             if (!isMe) loopIdx++;
 
             datasetsAssemblyArray.push({
