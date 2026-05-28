@@ -129,9 +129,9 @@
             <button onclick="switchNavigationRouteTab('timer')" id="tab-btn-timer" class="px-5 py-3 font-bold text-sm border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all duration-200 cursor-pointer">⏱️ Deep Focus Timer</button>
             <button onclick="switchNavigationRouteTab('mocks')" id="tab-btn-mocks" class="px-5 py-3 font-bold text-sm border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all duration-200 cursor-pointer">📝 Split Score Logger</button>
             <button onclick="switchNavigationRouteTab('syllabus')" id="tab-btn-syllabus" class="px-5 py-3 font-bold text-sm border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all duration-200 cursor-pointer">📚 Target Syllabus</button>
+            <button onclick="switchNavigationRouteTab('sync')" id="tab-btn-sync" class="px-5 py-3 font-bold text-sm border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all duration-200 cursor-pointer">📡 Sync Arena</button>
         </div>
 
-        <!-- 📊 DASHBOARD VIEW PANEL -->
         <div id="view-panel-dashboard" class="space-y-6 block">
             <div class="custom-card p-6 border-l-4 border-indigo-500">
                 <div class="flex items-center justify-between mb-4">
@@ -251,11 +251,9 @@
             </div>
         </div>
 
-        <!-- ⏱️ TIMER VIEW PANEL -->
         <div id="view-panel-timer" class="space-y-6 hidden">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 dashboard-grid">
                 
-                <!-- CALIBRATION PARAMETERS -->
                 <div class="custom-card p-6 space-y-4">
                     <h3 class="text-base font-black border-b border-[var(--border-ui)] pb-2">⚙️ Calibration Parameters</h3>
                     
@@ -308,7 +306,6 @@
                     </div>
                 </div>
 
-                <!-- MAIN TIMER CONSOLE -->
                 <div class="custom-card p-6 md:col-span-2 flex flex-col items-center justify-center text-center space-y-6 min-h-[380px] relative overflow-hidden">
                     <div id="pomodoro-state-badge" class="px-4 py-1.5 rounded-full text-xs font-black bg-indigo-100 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900 uppercase tracking-widest animate-pulse">
                         🎯 FOCUS ENGINE READY
@@ -334,7 +331,6 @@
                 </div>
             </div>
 
-            <!-- OLED SCREEN SAVER ARCHITECTURE OVERLAY -->
             <div id="oled-battery-saver-overlay" class="fixed inset-0 bg-[#000000] z-[99999] hidden flex-col items-center justify-center cursor-pointer select-none" onclick="deactivateBatterySaverDisplayMode()">
                 <div class="text-center space-y-4">
                     <p class="text-[10px] tracking-widest text-emerald-500 font-bold uppercase opacity-40 animate-pulse">🔋 AMOLED Battery Saver Active • Tap Anywhere to Exit</p>
@@ -383,7 +379,6 @@
             </div>
         </div>
 
-        <!-- 📝 MOCKS VIEW PANEL -->
         <div id="view-panel-mocks" class="space-y-6 hidden">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 dashboard-grid">
                 
@@ -458,7 +453,6 @@
             </div>
         </div>
 
-        <!-- 📚 SYLLABUS VIEW PANEL -->
         <div id="view-panel-syllabus" class="space-y-6 hidden">
             <div class="custom-card p-6">
                 <div class="flex items-center justify-between border-b border-[var(--border-ui)] pb-4 mb-4">
@@ -482,6 +476,45 @@
                 </div>
 
                 <div id="syllabus-master-category-grid-box" class="grid grid-cols-1 md:grid-cols-2 gap-6 dashboard-grid">
+                </div>
+            </div>
+        </div>
+
+        <div id="view-panel-sync" class="space-y-6 hidden">
+            <div class="custom-card p-6 border-l-4 border-rose-500">
+                <div class="flex items-center space-x-2 font-black text-sm tracking-widest mb-4 text-rose-500 uppercase">
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+                    </span>
+                    <span>Live Battlegrounds Connected Nodes</span>
+                </div>
+                
+                <div id="arena-live-users-deck" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <p class="text-[var(--text-muted)] animate-pulse text-xs">Awaiting primary active pipeline signal packets...</p>
+                </div>
+            </div>
+
+            <div class="custom-card p-6 border-l-4 border-indigo-500">
+                <h3 class="text-sm font-black uppercase border-b border-[var(--border-ui)] pb-3 mb-4 text-indigo-600 dark:text-indigo-400 tracking-wider">
+                    🏆 Global Completed focus blocks feed
+                </h3>
+                <div class="responsive-table-wrapper">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-[var(--border-ui)] text-[var(--text-muted)] font-bold bg-slate-50 dark:bg-slate-800/40 uppercase tracking-widest text-[10px]">
+                                <th class="py-2.5 px-3">Warrior Student</th>
+                                <th class="py-2.5 px-3">Volumetric Duration</th>
+                                <th class="py-2.5 px-3">Subject Domain Vector</th>
+                                <th class="py-2.5 px-3">Details/Note Flag Ledger</th>
+                            </tr>
+                        </thead>
+                        <tbody id="arena-global-sessions-tbody" class="divide-y divide-[var(--border-ui)]">
+                            <tr>
+                                <td colspan="4" class="p-4 text-center text-slate-400">Loading continuous record sets matrix index...</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -548,7 +581,6 @@
             "Mocks Engineering": "#64748b"
         };
 
-        // 📚 SYLLABUS DATA DICTIONARY SYNCHRONIZED TO 100% OF THE METRIC REGISTRY NOTIFICATION
         const MASTER_SYLLABUS_DATA_DICTIONARY = {
             "QA": [
                 "Whole Numbers Computation, Decimals & Fractions", "Percentage Rules & Successive Inversions", "Ratio & Proportion, Square Roots Mapping", 
@@ -881,7 +913,7 @@
 
         function switchNavigationRouteTab(targetTabId) {
             activeRouteTabId = targetTabId;
-            const tabs = ['dashboard', 'timer', 'mocks', 'syllabus'];
+            const tabs = ['dashboard', 'timer', 'mocks', 'syllabus', 'sync'];
             
             tabs.forEach(tab => {
                 const panel = document.getElementById(`view-panel-${tab}`);
@@ -1578,14 +1610,18 @@
                 const peerStudyTableBody = document.getElementById('table-body-peer-sessions-logs');
                 const myMocksTableBody = document.getElementById('table-body-my-mocks-logs');
                 const peerMocksTableBody = document.getElementById('table-body-peer-mocks-logs');
+                
+                // Sync Arena explicit viewport hooks
+                const arenaGlobalTbody = document.getElementById('arena-global-sessions-tbody');
 
                 if(myStudyTableBody) myStudyTableBody.innerHTML = ''; if(peerStudyTableBody) peerStudyTableBody.innerHTML = '';
                 if(myMocksTableBody) myMocksTableBody.innerHTML = ''; if(peerMocksTableBody) peerMocksTableBody.innerHTML = '';
+                if(arenaGlobalTbody) arenaGlobalTbody.innerHTML = '';
 
                 let calendarDateMatrixMap = {};
                 const safeSessions = studyLogsData || [];
 
-                safeSessions.forEach(sessionRow => {
+                safeSessions.forEach((sessionRow, idx) => {
                     const rowDurationInt = parseInt(sessionRow.duration || 0);
                     const rowFullTimestamp = new Date(sessionRow.created_at);
                     const rowLocalDateStr = rowFullTimestamp.toLocaleDateString();
@@ -1599,6 +1635,19 @@
                     } else {
                         calendarDateMatrixMap[rowLocalDateStr].buddy += rowDurationInt;
                         calendarDateMatrixMap[rowLocalDateStr].userMap.add(sessionRow.user_name);
+                    }
+
+                    // Populate Mobile Sync Arena global tracker list (Limit to top 25 records cleanly)
+                    if (arenaGlobalTbody && idx < 25) {
+                        const rowName = sessionRow.user_name || 'Anonymous';
+                        const nameColorStyle = (rowName.toLowerCase() === 'ajay' || rowName === activeUserNameText) ? 'text-indigo-500 font-black' : 'text-rose-500 font-bold';
+                        arenaGlobalTbody.innerHTML += `
+                            <tr class="hover:bg-slate-50/30 dark:hover:bg-slate-800/30 transition-colors">
+                                <td class="py-2 px-3 ${nameColorStyle}">${rowName}</td>
+                                <td class="py-2 px-3 font-semibold tabular-nums">${rowDurationInt} minutes</td>
+                                <td class="py-2 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold text-white" style="background-color: ${SUBJECTS_CORE_PALETTE[sessionRow.subject_name || sessionRow.subject] || '#4f46e5'}">${sessionRow.subject_name || sessionRow.subject || 'General'}</span></td>
+                                <td class="py-2 px-3 text-[var(--text-muted)] italic font-serif">"${sessionRow.note || 'No description left.'}"</td>
+                            </tr>`;
                     }
 
                     if (rowLocalDateStr === todayLocalDateString) {
@@ -1627,6 +1676,10 @@
                         }
                     }
                 });
+
+                if (arenaGlobalTbody && safeSessions.length === 0) {
+                    arenaGlobalTbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">Zero session entries recorded inside database structures.</td></tr>`;
+                }
 
                 renderHistoricalDailyArchiveLedgerTable(calendarDateMatrixMap, activeBuddyIdentityName, mockLogsData || []);
 
@@ -1785,7 +1838,9 @@
                 const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
                 const { data } = await supabaseClient.from('live_battlegrounds').select('user_name, last_active_tick, current_subject').gte('last_active_tick', fiveMinAgo);
                     
-                const panel = document.getElementById('live-users-panel'); const list = document.getElementById('live-users-list');
+                const panel = document.getElementById('live-users-panel'); 
+                const list = document.getElementById('live-users-list');
+                const arenaDeck = document.getElementById('arena-live-users-deck');
                 const myName = localStorage.getItem('ssc_user_profile_name') || 'Warrior';
                 
                 const seenUsers = new Set(); const liveUsers = [];
@@ -1793,6 +1848,7 @@
                     if (!seenUsers.has(row.user_name)) { seenUsers.add(row.user_name); liveUsers.push(row); }
                 });
                 
+                // Render inside primary focus panels
                 if (liveUsers.length > 0 && panel && list) {
                     panel.classList.remove('hidden');
                     list.innerHTML = liveUsers.map(u => {
@@ -1800,6 +1856,23 @@
                         return `<span class="px-2 py-1 rounded-full ${isYou ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400' : 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400'} font-bold">🟢 ${u.user_name} (${u.current_subject || 'Studying'})${isYou ? ' (You)' : ''}</span>`;
                     }).join(' ');
                 } else if (panel) { panel.classList.add('hidden'); }
+
+                // Synchronized layout replication for Sync Arena explicit deck
+                if (arenaDeck) {
+                    if (liveUsers.length > 0) {
+                        arenaDeck.innerHTML = liveUsers.map(user => {
+                            const isMe = user.user_name === myName;
+                            const nameTextHex = isMe ? 'text-indigo-500' : 'text-rose-500';
+                            return `
+                                <div class="p-3 bg-[var(--bg-primary)] border border-[var(--border-ui)] rounded-xl flex justify-between items-center transition-all">
+                                    <div class="font-bold ${nameTextHex}">${user.user_name} ${isMe ? '(You)' : ''}</div>
+                                    <div class="text-xs text-[var(--text-muted)]">Actively exploring <span class="text-indigo-600 dark:text-indigo-400 font-semibold">${user.current_subject || 'General Blueprint'}</span></div>
+                                </div>`;
+                        }).join('');
+                    } else {
+                        arenaDeck.innerHTML = `<p class="text-[var(--text-muted)] text-xs">No active study warriors logged over the telemetry mesh right now.</p>`;
+                    }
+                }
             } catch(err) { console.error('Live profile track fail context:', err); }
         }
 
