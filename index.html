@@ -131,8 +131,8 @@
             <button onclick="switchNavigationRouteTab('syllabus')" id="tab-btn-syllabus" class="px-5 py-3 font-bold text-sm border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all duration-200 cursor-pointer">📚 Target Syllabus</button>
         </div>
 
+        <!-- 📊 DASHBOARD VIEW PANEL -->
         <div id="view-panel-dashboard" class="space-y-6 block">
-            
             <div class="custom-card p-6 border-l-4 border-indigo-500">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-base font-black text-[var(--text-muted)] tracking-wider uppercase">⚔️ Live Synchronized Battlegrounds (Today's Volume)</h3>
@@ -251,15 +251,17 @@
             </div>
         </div>
 
+        <!-- ⏱️ TIMER VIEW PANEL -->
         <div id="view-panel-timer" class="space-y-6 hidden">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 dashboard-grid">
                 
+                <!-- CALIBRATION PARAMETERS -->
                 <div class="custom-card p-6 space-y-4">
                     <h3 class="text-base font-black border-b border-[var(--border-ui)] pb-2">⚙️ Calibration Parameters</h3>
                     
                     <div>
                         <label class="block text-xs font-bold uppercase text-[var(--text-muted)] mb-1">Active Target Domain Subject</label>
-                        <select id="pomodoro-subject-dropdown" oninput="adaptScientificPomodoroRecommendation()" class="w-full p-2.5 rounded-lg ui-input font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <select id="pomodoro-subject-dropdown" onchange="adaptScientificPomodoroRecommendation()" class="w-full p-2.5 rounded-lg ui-input font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </select>
                     </div>
 
@@ -269,7 +271,7 @@
 
                     <div>
                         <label class="block text-xs font-bold uppercase text-[var(--text-muted)] mb-1">Choose Focus Session Time</label>
-                        <select id="pomodoro-session-selector" onchange="adaptScientificPomodoroRecommendation()" class="w-full p-2.5 rounded-lg ui-input font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                        <select id="pomodoro-session-selector" onchange="manuallyAdjustTimerDuration(this.value)" class="w-full p-2.5 rounded-lg ui-input font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
                             <option value="25" selected>25 Minutes (Standard Pomodoro)</option>
                             <option value="30">30 Minutes (Deep Focus Cycle)</option>
                             <option value="35">35 Minutes</option>
@@ -291,17 +293,24 @@
                         </select>
                     </div>
 
-                    <div class="pt-2 border-t border-[var(--border-ui)]">
+                    <div class="pt-2 border-t border-[var(--border-ui)] space-y-2">
                         <label class="block text-xs font-bold uppercase text-[var(--text-muted)] mb-1">➕ Add Custom Domain Subject</label>
+                        <input type="text" id="input-custom-subject-name" placeholder="e.g., Static GK Capsule" class="w-full p-2 rounded-lg ui-input text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500">
                         <div class="flex gap-2">
-                            <input type="text" id="input-custom-subject-name" placeholder="e.g., Static GK Capsule" class="flex-1 p-2 rounded-lg ui-input text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                            <button onclick="executeAddCustomSubjectPipeline()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-sm cursor-pointer transition-colors duration-150">Add</button>
+                            <select id="input-custom-subject-time" class="flex-1 p-2 rounded-lg ui-input text-xs focus:outline-none">
+                                <option value="25">25 Mins</option>
+                                <option value="30">30 Mins</option>
+                                <option value="45">45 Mins</option>
+                                <option value="60">60 Mins</option>
+                            </select>
+                            <button onclick="executeAddCustomSubjectPipeline()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-xs cursor-pointer transition-colors duration-150">Add Domain</button>
                         </div>
                     </div>
                 </div>
 
+                <!-- MAIN TIMER CONSOLE -->
                 <div class="custom-card p-6 md:col-span-2 flex flex-col items-center justify-center text-center space-y-6 min-h-[380px] relative overflow-hidden">
-                    <div id="pomodoro-state-badge" class="px-4 py-1.5 rounded-full text-xs font-black bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900 uppercase tracking-widest animate-pulse">
+                    <div id="pomodoro-state-badge" class="px-4 py-1.5 rounded-full text-xs font-black bg-indigo-100 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900 uppercase tracking-widest animate-pulse">
                         🎯 FOCUS ENGINE READY
                     </div>
                     
@@ -313,11 +322,26 @@
                         <button id="btn-pomodoro-primary-toggle" onclick="togglePomodoroEngineState()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-sm transition-all duration-150 shadow-md cursor-pointer uppercase tracking-wider">Start Block</button>
                         <button id="btn-pomodoro-reset-kill" onclick="resetPomodoroEngineState()" class="px-4 py-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-[var(--text-main)] font-bold rounded-xl text-sm transition-all duration-150 cursor-pointer">Reset</button>
                     </div>
-                    <button id="btn-pomodoro-done-early" onclick="submitEarlySessionCompletion()" class="hidden w-full max-w-xs py-3 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-xl text-sm transition-all duration-150 shadow-md cursor-pointer uppercase tracking-wider">✅ Done Early — Submit Session</button>
+                    
+                    <div class="flex flex-col gap-2 w-full max-w-xs">
+                        <button id="btn-pomodoro-done-early" onclick="submitEarlySessionCompletion()" class="hidden w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-xl text-xs transition-all duration-150 shadow-md cursor-pointer uppercase tracking-wider">✅ Done Early — Submit</button>
+                        <button id="btn-trigger-battery-saver" onclick="activateBatterySaverDisplayMode()" class="w-full py-2 bg-slate-800 hover:bg-slate-900 text-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 font-bold rounded-xl text-xs transition-all duration-150 cursor-pointer uppercase tracking-widest flex items-center justify-center gap-1">🔋 Eco Screen Saver</button>
+                    </div>
 
                     <div class="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
                         Completed Target Streaks: <span id="pomodoro-streak-counter-value" class="text-[var(--text-main)] font-black text-sm ml-1">0</span>
                     </div>
+                </div>
+            </div>
+
+            <!-- OLED SCREEN SAVER ARCHITECTURE OVERLAY -->
+            <div id="oled-battery-saver-overlay" class="fixed inset-0 bg-[#000000] z-[99999] hidden flex-col items-center justify-center cursor-pointer select-none" onclick="deactivateBatterySaverDisplayMode()">
+                <div class="text-center space-y-4">
+                    <p class="text-[10px] tracking-widest text-emerald-500 font-bold uppercase opacity-40 animate-pulse">🔋 AMOLED Battery Saver Active • Tap Anywhere to Exit</p>
+                    <div class="font-mono text-7xl md:text-8xl font-bold tracking-tighter text-slate-400 opacity-80 tabular-nums">
+                        <span id="saver-display-minutes">25</span>:<span id="saver-display-seconds">00</span>
+                    </div>
+                    <p id="saver-display-subject" class="text-xs tracking-wider text-indigo-400/60 font-semibold uppercase">Subject Block</p>
                 </div>
             </div>
 
@@ -359,6 +383,7 @@
             </div>
         </div>
 
+        <!-- 📝 MOCKS VIEW PANEL -->
         <div id="view-panel-mocks" class="space-y-6 hidden">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 dashboard-grid">
                 
@@ -433,6 +458,7 @@
             </div>
         </div>
 
+        <!-- 📚 SYLLABUS VIEW PANEL -->
         <div id="view-panel-syllabus" class="space-y-6 hidden">
             <div class="custom-card p-6">
                 <div class="flex items-center justify-between border-b border-[var(--border-ui)] pb-4 mb-4">
@@ -448,6 +474,7 @@
                             <option value="GI">Reasoning Intelligence</option>
                             <option value="GA">General Awareness</option>
                             <option value="CS">Computer Knowledge</option>
+                            <option value="ST">Statistics (Paper-II)</option>
                         </select>
                         <input type="hidden" id="edit-record-modal-shroud" value=""> 
                         <button onclick="executeAddCustomSyllabusTopicPipeline()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg cursor-pointer transition-colors duration-150">Add Topic</button>
@@ -521,36 +548,61 @@
             "Mocks Engineering": "#64748b"
         };
 
+        // 📚 SYLLABUS DATA DICTIONARY SYNCHRONIZED TO 100% OF THE METRIC REGISTRY NOTIFICATION
         const MASTER_SYLLABUS_DATA_DICTIONARY = {
             "QA": [
-                "Percentage & Successive Fractions", "Profit, Loss & Discount Arrays", "Ratio, Proportion & Mixture Alligations",
-                "Time, Speed, Distance & Relative Motion", "Geometry Triangles, Circles & Coordinate Systems", 
-                "Algebra Polynomial Identities", "Trigonometry Heights, Distances & Maxima Minima", "Data Interpretation Bar, Pie & Line Graphs",
-                "Calculation Speed Drills & Tables Matrix"
-            ],
-            "EL": [
-                "Grammar Rules Subject-Verb Agreement", "Tenses & Conditional Clauses", "Active Passive Voices Transformation",
-                "Direct Indirect Narration Cascades", "Error Spotting & Sentence Improvement Blocks",
-                "Vocabulary High Frequency Synonyms/Antonyms", "One Word Substitutions & Idiom Phrases", "Reading Comprehension Strategy Check",
-                "Cloze Test Structural Context Elimination", "Para Jumbles Logical Chain Sequencing"
+                "Whole Numbers Computation, Decimals & Fractions", "Percentage Rules & Successive Inversions", "Ratio & Proportion, Square Roots Mapping", 
+                "Averages & Weighted Balances", "Simple & Compound Interest Systems", "Profit, Loss & Discount Arithmetic",
+                "Partnership Business Assets Slabs", "Mixture & Alligation Configurations", "Time, Speed, Distance & Relative Motion", 
+                "Time & Work Efficiencies Operations", "Basic Algebraic Identities & Elementary Surds", "Graphs of Linear Equations Linear Strata",
+                "Triangle & its Centres (In, Circum, Ortho, Centroid)", "Congruence & Similarity of Triangles", "Circle: Chords, Tangents & Angles Subtended",
+                "Common Tangents to Two or More Circles", "Quadrilaterals, Regular Polygons & Circles Perimeter", "Right Prism & Rectangular Parallelepiped",
+                "Right Circular Cone & Right Circular Cylinder", "Sphere & Hemispheres Surface Area/Volume", "Regular Right Pyramid (Triangular/Square Base)",
+                "Trigonometric Ratios & Degree/Radian Measures", "Standard Trigonometric Identities (sin²θ+cos²θ=1)", "Complementary Angles Layouts",
+                "Heights & Distances Vector Problems", "Data Processing: Histograms & Frequency Polygons", "Bar Diagrams & Pie Charts Matrix Analysis"
             ],
             "GI": [
-                "Analogy & Classification Matrices", "Coding-Decoding Alpha-Numeric Shifts", "Blood Relations Tree Mapping",
-                "Direction Sense Coordinate Operations", "Syllogism Venn Diagram Logical Sets", "Series Completion Missing Terms Check",
-                "Dice, Cube & Paper Folding Visual Layouts", "Matrix Coding & Counting Figures Scaling", "Critical Reasoning Statement Assumptions"
+                "Semantic Analogy & Word Connectivity", "Symbolic / Number Analogy Matrices", "Figural Analogy Pattern Transposition",
+                "Semantic Classification & Group Diagnostics", "Symbolic / Number Classification Blocks", "Figural Classification Sorting Slabs",
+                "Semantic Series Logical Sequencing", "Number Series Progression Tracking", "Figural Series Spatial Rotations",
+                "Space Orientation & Space Visualization", "Venn Diagrams Set Theory Operations", "Drawing Inferences & Statement Conclusions",
+                "Punched Hole/Pattern Folding & Unfolding", "Figural Pattern Folding & Completion Metrics", "Embedded Figures Diagnostic Tests",
+                "Critical Thinking & Problem Solving Loops", "Word Building Matrix Operations", "Coding & Decoding Transposition Arrays",
+                "Numerical Operations & Symbolic Changes", "Address Matching Verification Systems", "Date & City Matching Audits",
+                "Classification of Centre Codes & Roll Numbers", "Small & Capital Letters Coding Arrays", "Emotional Intelligence Diagnostic Matrix",
+                "Social Intelligence Interaction Tracks", "Syllogistic Reasoning Logic Chains"
+            ],
+            "EL": [
+                "Vocabulary High Frequency Core Triggers", "Grammar Mechanics & Parts of Speech", "Sentence Structure Core Synthesis",
+                "Synonyms, Antonyms & Homonyms Usage", "Spot the Error Structural Syntax", "Fill in the Blanks Context Selections",
+                "Spellings / Detecting Misspelt Words", "Idioms & Phrases Historical Context", "One Word Substitution Vocabulary",
+                "Improvement of Sentences Syntactic Adjustments", "Active / Passive Voice Transformation Matrix", "Direct / Indirect Narration Cascades",
+                "Shuffling of Sentence Parts (Para Jumbles Type A)", "Shuffling of Sentences in a Passage (Type B)", "Cloze Passage Structural Context Elimination",
+                "Reading Comprehension Story-Based Paragraphs", "Reading Comprehension Editorial/Report Current Strata"
             ],
             "GA": [
-                "Ancient, Medieval & Modern Indian History", "Indian Constitution Articles & Amendment Structures",
-                "Physical, Economic & Political Geography Sets", "Macroeconomics & Five Year Planning Frameworks",
-                "Physics, Chemistry & Biology Core Concepts", "Static General Knowledge Capitals, Currencies & National Parks",
-                "Current Affairs Dynamic Monthly Capsules", "Editorial Analysis Daily Newspaper Drills"
+                "Ancient Indian History Strata", "Medieval Indian History Matrix", "Modern Indian History & National Movement",
+                "Culture, Monuments & Art Forms Architecture", "Physical Geography Core Topography", "Economic Scene & Macroeconomics Assets",
+                "Indian Constitution Articles & Amendment Structures", "General Policy & Planning Frameworks", "Scientific Research & Space Technology Labs",
+                "Everyday Observations & Everyday Scientific Aspects", "India and its Neighboring Countries Geopolitics", "Current Events Dynamics Monthly Capsules"
             ],
             "CS": [
-                "Computer Fundamentals — Hardware, Software & OS Basics", "MS Office — Word, Excel, PowerPoint Shortcuts",
-                "Internet Concepts — Browsers, Protocols, Email & Security", "Networking Basics — LAN, WAN, IP, DNS, HTTP",
-                "Memory Types — RAM, ROM, Cache, Secondary Storage", "Input/Output Devices & Peripheral Units",
-                "Number Systems — Binary, Octal, Hexadecimal Conversions", "Database Concepts — DBMS, SQL Basics",
-                "Cybersecurity Threats — Virus, Malware, Phishing, Firewall", "Shortcut Keys & File Management Operations"
+                "Computer Organization, CPU Core Units & Architecture", "Input and Output Peripheral Devices Tracking", "Computer Memory & Memory Organization Units",
+                "Backup Devices Storage Architectures", "Hardware PORTs Channels & Windows Explorer Basics", "Keyboard Shortcuts & Operational Commands",
+                "Windows Operating System Interface Frameworks", "MS Word Functional Layout Shortcuts", "MS Excel Data Spreadsheet Grid Formulas",
+                "MS PowerPoint Presentation Interface Tracks", "Web Browsing, Searching & Engines Engineering", "Downloading and Uploading Packet Transactions",
+                "Managing an E-mail Account & Protocols Architecture", "e-Banking Systems Security Operational Flow", "Networking Devices, Topologies & Protocols (HTTP/IP)",
+                "Cyber Security Threats: Hacking, Viruses & Worms", "Cyber Security Threats: Trojans & Preventative Measures"
+            ],
+            "ST": [
+                "Primary & Secondary Data Methods Collection", "Tabulation of Data, Graphs & Charts Structural Presentation", "Frequency Distributions & Diagrammatic Formats",
+                "Common Measures of Central Tendency: Mean, Median, Mode", "Partition Values: Quartiles, Deciles & Percentiles", "Measures of Dispersion: Range & Quartile Deviation",
+                "Measures of Dispersion: Mean Deviation & Standard Deviation", "Moments, Skewness & Kurtosis Relationships Maps", "Scatter Diagrams & Simple Correlation Coefficients Matrices",
+                "Simple Regression Lines & Spearman's Rank Correlation", "Probability Theory Definitions, Compound & Classical Slabs", "Bayes' Theorem & Conditional Probabilities Operations",
+                "Random Variables: Expectation, Variance & Joint Distributions", "Probability Distributions: Binomial, Poisson & Normal/Exponential", "Sampling Theory Concepts: Parameter, Statistic & Error Limits",
+                "Sampling Techniques: Random, Stratified, Multistage & Cluster", "Sampling Techniques: Systematic, Purposive, Convenience & Quota", "Statistical Inference: Point & Interval Estimations Models",
+                "Estimation Methods: Moments, MLE & Least Squares Equations", "Testing of Hypothesis, Small & Large Sample Systems", "Tests Based on Z, t, Chi-Square & F Statistics Metrics",
+                "Analysis of Variance (ANOVA): One-Way & Two-Way Matrices", "Time Series Analysis: Components & Trend Determinations", "Index Numbers Construction Formulae, Base Shifting & Splicing"
             ]
         };
 
@@ -580,8 +632,9 @@
         function recomputeAndRenderDashboardCharts(sessionLogsArray, mockSheetsLogsArray) {
             const subjectDurationAccumulator = {};
             const todayLocalDateString = new Date().toLocaleDateString();
+            const safeSessions = sessionLogsArray || [];
             
-            sessionLogsArray.forEach(log => {
+            safeSessions.forEach(log => {
                 const rowDateStr = new Date(log.created_at).toLocaleDateString();
                 if(rowDateStr === todayLocalDateString) {
                     const subject = log.subject_name || log.subject || "Unmapped Domain";
@@ -618,7 +671,7 @@
             }
 
             const activeProfileName = localStorage.getItem('ssc_user_profile_name') || 'Warrior';
-            const sortedMocks = [...mockSheetsLogsArray].filter(m => m.user_name === activeProfileName).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+            const sortedMocks = [...(mockSheetsLogsArray || [])].filter(m => m.user_name === activeProfileName).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
             const mockLabels = sortedMocks.map((mock, idx) => mock.mock_name || mock.name || `Mock #${idx + 1}`);
             const mockPercentages = sortedMocks.map(mock => {
                 const total = parseInt(mock.total || 0);
@@ -665,15 +718,16 @@
                 });
             }
 
-            triggerRadarChartAggregationMatrix(mockSheetsLogsArray);
+            triggerRadarChartAggregationMatrix(mockSheetsLogsArray || []);
         }
 
         function triggerRadarChartAggregationMatrix(mockSheetsLogsArray) {
             const activeProfileName = localStorage.getItem('ssc_user_profile_name') || 'Warrior';
             const isDarkActive = document.documentElement.getAttribute('data-theme') === 'dark';
+            const safeMocks = mockSheetsLogsArray || [];
             
             let datasetAggregationMap = {};
-            mockSheetsLogsArray.forEach(mockRow => {
+            safeMocks.forEach(mockRow => {
                 const userKey = mockRow.user_name || 'Warrior';
                 if (!datasetAggregationMap[userKey]) {
                     datasetAggregationMap[userKey] = { QA: [], GI: [], EL: [], GA: [] };
@@ -693,7 +747,6 @@
             });
 
             const calculateAverageSlice = (arr) => arr.length === 0 ? 0 : Math.round(arr.reduce((a, b) => a + b, 0) / arr.length);
-
             let datasetsAssemblyArray = [];
 
             for (let userKey in datasetAggregationMap) {
@@ -703,9 +756,7 @@
                 const gaAvg = calculateAverageSlice(datasetAggregationMap[userKey].GA);
 
                 const isMe = userKey === activeProfileName;
-                
-                // FIXED PERMANENT DISTINCTION COLOR MATRIX CHANNELS
-                const assignedHexColor = isMe ? '#4f46e5' : '#f43f5e'; // You = Indigo Blue, Buddy = Rose Pink
+                const assignedHexColor = isMe ? '#4f46e5' : '#f43f5e'; 
 
                 datasetsAssemblyArray.push({
                     label: isMe ? `🥇 You (${userKey})` : `👤 Buddy: ${userKey}`,
@@ -810,10 +861,17 @@
             if(currentRemainingState !== 'RUNNING') {
                 const sessionSelector = document.getElementById('pomodoro-session-selector');
                 if (sessionSelector) sessionSelector.value = contextRuleProfileMatch.time;
-                const minutesToRenderInt = parseInt(contextRuleProfileMatch.time);
-                
+                manuallyAdjustTimerDuration(contextRuleProfileMatch.time);
+            }
+        }
+
+        function manuallyAdjustTimerDuration(minutesValue) {
+            const currentRemainingState = localStorage.getItem('pomodoro_engine_runtime_state');
+            if(currentRemainingState !== 'RUNNING') {
+                const minutesToRenderInt = parseInt(minutesValue || '25');
                 const minBox = document.getElementById('timer-display-minutes');
                 const secBox = document.getElementById('timer-display-seconds');
+                
                 if (minBox) minBox.innerText = minutesToRenderInt.toString().padStart(2, '0');
                 if (secBox) secBox.innerText = "00";
                 
@@ -906,10 +964,19 @@
         function syncChronometerDisplayDigits(totalSecondsCountRemaining) {
             const minDigits = Math.floor(totalSecondsCountRemaining / 60);
             const secDigits = totalSecondsCountRemaining % 60;
+            
+            const minStr = minDigits.toString().padStart(2, '0');
+            const secStr = secDigits.toString().padStart(2, '0');
+
             const minBox = document.getElementById('timer-display-minutes');
             const secBox = document.getElementById('timer-display-seconds');
-            if (minBox) minBox.innerText = minDigits.toString().padStart(2, '0');
-            if (secBox) secBox.innerText = secDigits.toString().padStart(2, '0');
+            if (minBox) minBox.innerText = minStr;
+            if (secBox) secBox.innerText = secStr;
+
+            const saverMinBox = document.getElementById('saver-display-minutes');
+            const saverSecBox = document.getElementById('saver-display-seconds');
+            if (saverMinBox) saverMinBox.innerText = minStr;
+            if (saverSecBox) saverSecBox.innerText = secStr;
         }
 
         function togglePomodoroEngineState() {
@@ -1167,16 +1234,53 @@
 
         async function executeAddCustomSubjectPipeline() {
             const rawInputField = document.getElementById('input-custom-subject-name');
-            if (!rawInputField) return;
+            const customTimeSelector = document.getElementById('input-custom-subject-time');
+            if (!rawInputField || !customTimeSelector) return;
+            
             const sanitizedSubjectText = rawInputField.value.trim();
+            const allocatedDurationTime = customTimeSelector.value;
             if (!sanitizedSubjectText) return;
+
+            scientificPomodoroRulesEngineMatrix[sanitizedSubjectText] = {
+                rec: `🛠️ <b>Custom Target Domain:</b> Configured blueprint block mapped to run at <b>${allocatedDurationTime} Mins Focus</b> Slabs.`,
+                time: allocatedDurationTime
+            };
 
             if (window.supabase && supabaseClient) {
                 try {
                     await supabaseClient.from('custom_subjects').insert([{ subject_name: sanitizedSubjectText }]);
-                    toastNotificationPopup(`Domain Subject [${sanitizedSubjectText}] pushed successfully.`);
-                    rawInputField.value = ''; await populateSubjectsInterfaceDropdowns();
+                    toastNotificationPopup(`Domain Subject [${sanitizedSubjectText}] pushed at ${allocatedDurationTime}M.`);
+                    rawInputField.value = ''; 
+                    await populateSubjectsInterfaceDropdowns();
+                    
+                    const dropdown = document.getElementById('pomodoro-subject-dropdown');
+                    if(dropdown) {
+                        dropdown.value = sanitizedSubjectText;
+                        adaptScientificPomodoroRecommendation();
+                    }
                 } catch (err) { toastNotificationPopup("Failed to store custom subject on cloud.", "error"); }
+            }
+        }
+
+        function activateBatterySaverDisplayMode() {
+            const overlayContainer = document.getElementById('oled-battery-saver-overlay');
+            const activeSubjectDropdown = document.getElementById('pomodoro-subject-dropdown');
+            const saverSubjectLabel = document.getElementById('saver-display-subject');
+
+            if (overlayContainer) {
+                if(activeSubjectDropdown && saverSubjectLabel) {
+                    saverSubjectLabel.innerText = activeSubjectDropdown.value || "General Focus Block";
+                }
+                overlayContainer.classList.remove('hidden');
+                overlayContainer.classList.add('flex');
+            }
+        }
+
+        function deactivateBatterySaverDisplayMode() {
+            const overlayContainer = document.getElementById('oled-battery-saver-overlay');
+            if (overlayContainer) {
+                overlayContainer.classList.remove('flex');
+                overlayContainer.classList.add('hidden');
             }
         }
 
@@ -1307,7 +1411,7 @@
                 const userName = localStorage.getItem('ssc_user_profile_name') || 'Warrior';
                 const { data, error } = await supabaseClient.from('custom_topics').select('category, topic_name').eq('user_name', userName);
                 if (error) throw error;
-                const mapping = {}; data.forEach(item => { mapping[`${item.category}||${item.topic_name}`] = 'DONE'; });
+                const mapping = {}; (data || []).forEach(item => { mapping[`${item.category}||${item.topic_name}`] = 'DONE'; });
                 return mapping;
             } catch (err) { return {}; }
         }
@@ -1345,7 +1449,14 @@
             if (!gridContainerOuterBox) return;
             gridContainerOuterBox.innerHTML = '';
 
-            const categoryHeadersTranslationMap = { "QA": "📐 Quantitative Aptitude Core", "EL": "📖 English Language & Comprehension", "GI": "🧠 Reasoning & Logical Intelligence", "GA": "🌍 General Awareness & Current Strata", "CS": "💻 Computer Knowledge & IT Fundamentals" };
+            const categoryHeadersTranslationMap = { 
+                "QA": "📐 Quantitative Aptitude & Math Abilities", 
+                "EL": "📖 English Language & Comprehension", 
+                "GI": "🧠 Reasoning & General Intelligence", 
+                "GA": "🌍 General Awareness (Core & Current)", 
+                "CS": "💻 Computer Knowledge Proficiency",
+                "ST": "📊 Statistics (Paper-II Post Specific)"
+            };
             const cloudProgressStates = await fetchSyllabusStatesFromCloud();
 
             let grandTotalTopicsCount = 0; let totalCompletedDoneCount = 0;
@@ -1461,7 +1572,6 @@
                 const { data: mockLogsData } = await supabaseClient.from('mock_tests').select('*').order('created_at', { ascending: false });
 
                 let dailyAccumulatedMinutesYourself = 0; let dailyAccumulatedMinutesBuddyPeer = 0; let activeBuddyIdentityName = 'Study Buddy';
-                
                 const todayLocalDateString = new Date().toLocaleDateString();
 
                 const myStudyTableBody = document.getElementById('table-body-my-sessions-logs');
@@ -1473,56 +1583,55 @@
                 if(myMocksTableBody) myMocksTableBody.innerHTML = ''; if(peerMocksTableBody) peerMocksTableBody.innerHTML = '';
 
                 let calendarDateMatrixMap = {};
+                const safeSessions = studyLogsData || [];
 
-                if (studyLogsData) {
-                    studyLogsData.forEach(sessionRow => {
-                        const rowDurationInt = parseInt(sessionRow.duration || 0);
-                        const rowFullTimestamp = new Date(sessionRow.created_at);
-                        const rowLocalDateStr = rowFullTimestamp.toLocaleDateString();
-                        const timestampLocalClockStr = rowFullTimestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                        
-                        if(!calendarDateMatrixMap[rowLocalDateStr]) {
-                            calendarDateMatrixMap[rowLocalDateStr] = { me: 0, buddy: 0, userMap: new Set() };
-                        }
-                        if(sessionRow.user_name === activeUserNameText) {
-                            calendarDateMatrixMap[rowLocalDateStr].me += rowDurationInt;
+                safeSessions.forEach(sessionRow => {
+                    const rowDurationInt = parseInt(sessionRow.duration || 0);
+                    const rowFullTimestamp = new Date(sessionRow.created_at);
+                    const rowLocalDateStr = rowFullTimestamp.toLocaleDateString();
+                    const timestampLocalClockStr = rowFullTimestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    
+                    if(!calendarDateMatrixMap[rowLocalDateStr]) {
+                        calendarDateMatrixMap[rowLocalDateStr] = { me: 0, buddy: 0, userMap: new Set() };
+                    }
+                    if(sessionRow.user_name === activeUserNameText) {
+                        calendarDateMatrixMap[rowLocalDateStr].me += rowDurationInt;
+                    } else {
+                        calendarDateMatrixMap[rowLocalDateStr].buddy += rowDurationInt;
+                        calendarDateMatrixMap[rowLocalDateStr].userMap.add(sessionRow.user_name);
+                    }
+
+                    if (rowLocalDateStr === todayLocalDateString) {
+                        if (sessionRow.user_name === activeUserNameText) {
+                            dailyAccumulatedMinutesYourself += rowDurationInt;
+                            if(myStudyTableBody) {
+                                myStudyTableBody.innerHTML += `
+                                    <tr class="border-b border-[var(--border-ui)]" style="background:var(--my-row-bg)">
+                                        <td class="p-2 text-slate-400 font-mono">${timestampLocalClockStr}</td>
+                                        <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] font-black text-white" style="background-color: ${SUBJECTS_CORE_PALETTE[sessionRow.subject_name || sessionRow.subject] || '#64748b'}">${sessionRow.subject_name || sessionRow.subject || 'General'}</span></td>
+                                        <td class="p-2 font-bold tabular-nums">${rowDurationInt}m</td>
+                                        <td class="p-2 text-right"><button onclick="executeRecordDeletionSequencePipeline('sessions', '${sessionRow.id}')" class="text-rose-500 font-bold cursor-pointer text-[13px]">🗑️</button></td>
+                                    </tr>`;
+                            }
                         } else {
-                            calendarDateMatrixMap[rowLocalDateStr].buddy += rowDurationInt;
-                            calendarDateMatrixMap[rowLocalDateStr].userMap.add(sessionRow.user_name);
-                        }
-
-                        if (rowLocalDateStr === todayLocalDateString) {
-                            if (sessionRow.user_name === activeUserNameText) {
-                                dailyAccumulatedMinutesYourself += rowDurationInt;
-                                if(myStudyTableBody) {
-                                    myStudyTableBody.innerHTML += `
-                                        <tr class="border-b border-[var(--border-ui)]" style="background:var(--my-row-bg)">
-                                            <td class="p-2 text-slate-400 font-mono">${timestampLocalClockStr}</td>
-                                            <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] font-black text-white" style="background-color: ${SUBJECTS_CORE_PALETTE[sessionRow.subject_name] || '#64748b'}">${sessionRow.subject_name || 'General'}</span></td>
-                                            <td class="p-2 font-bold tabular-nums">${rowDurationInt}m</td>
-                                            <td class="p-2 text-right"><button onclick="executeRecordDeletionSequencePipeline('sessions', '${sessionRow.id}')" class="text-rose-500 font-bold cursor-pointer text-[13px]">🗑️</button></td>
-                                        </tr>`;
-                                }
-                            } else {
-                                dailyAccumulatedMinutesBuddyPeer += rowDurationInt;
-                                if (sessionRow.user_name && sessionRow.user_name !== activeUserNameText) { activeBuddyIdentityName = sessionRow.user_name; }
-                                if(peerStudyTableBody) {
-                                    peerStudyTableBody.innerHTML += `
-                                        <tr class="border-b border-[var(--border-ui)]" style="background:var(--peer-row-bg)">
-                                            <td class="p-2 font-black text-rose-500">${sessionRow.user_name}</td>
-                                            <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] font-black text-white" style="background-color: ${SUBJECTS_CORE_PALETTE[sessionRow.subject_name] || '#64748b'}">${sessionRow.subject_name || 'General'}</span></td>
-                                            <td class="p-2 font-bold tabular-nums">${rowDurationInt}m</td>
-                                        </tr>`;
-                                }
+                            dailyAccumulatedMinutesBuddyPeer += rowDurationInt;
+                            if (sessionRow.user_name && sessionRow.user_name !== activeUserNameText) { activeBuddyIdentityName = sessionRow.user_name; }
+                            if(peerStudyTableBody) {
+                                peerStudyTableBody.innerHTML += `
+                                    <tr class="border-b border-[var(--border-ui)]" style="background:var(--peer-row-bg)">
+                                        <td class="p-2 font-black text-rose-500">${sessionRow.user_name}</td>
+                                        <td class="p-2"><span class="px-2 py-0.5 rounded text-[10px] font-black text-white" style="background-color: ${SUBJECTS_CORE_PALETTE[sessionRow.subject_name || sessionRow.subject] || '#64748b'}">${sessionRow.subject_name || sessionRow.subject || 'General'}</span></td>
+                                        <td class="p-2 font-bold tabular-nums">${rowDurationInt}m</td>
+                                    </tr>`;
                             }
                         }
-                    });
-                }
+                    }
+                });
 
-                renderHistoricalDailyArchiveLedgerTable(calendarDateMatrixMap, activeBuddyIdentityName, mockLogsData);
+                renderHistoricalDailyArchiveLedgerTable(calendarDateMatrixMap, activeBuddyIdentityName, mockLogsData || []);
 
-                if(activeBuddyIdentityName === 'Study Buddy' && studyLogsData) {
-                    const prospectivePeer = studyLogsData.find(s => s.user_name !== activeUserNameText);
+                if(activeBuddyIdentityName === 'Study Buddy' && safeSessions.length > 0) {
+                    const prospectivePeer = safeSessions.find(s => s.user_name !== activeUserNameText);
                     if(prospectivePeer) activeBuddyIdentityName = prospectivePeer.user_name;
                 }
 
@@ -1547,44 +1656,40 @@
 
                 const totalStudyHrsBox = document.getElementById('stat-metrics-total-study-hours');
                 if (totalStudyHrsBox) totalStudyHrsBox.innerText = `${Math.floor(dailyAccumulatedMinutesYourself/60)}h ${(dailyAccumulatedMinutesYourself%60).toString().padStart(2,'0')}m`;
-                
-                const mockCountBox = document.getElementById('stat-metrics-mock-count-index');
-                if (mockCountBox) mockCountBox.innerText = mockLogsData ? mockLogsData.filter(m => m.user_name === activeUserNameText).length : 0;
 
-                calculateAndRenderPerformanceIndexRating(dailyAccumulatedMinutesYourself, mockLogsData, activeUserNameText);
+                calculateAndRenderPerformanceIndexRating(dailyAccumulatedMinutesYourself, mockLogsData || [], activeUserNameText);
 
-                if (mockLogsData) {
-                    mockLogsData.forEach(mockRow => {
-                        const rowPercentScore = mockRow.total > 0 ? Math.round((mockRow.score / mockRow.total) * 100) : 0;
-                        const performanceBadgeColorStyle = rowPercentScore >= 78 ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-indigo-100 text-indigo-700 border border-indigo-200";
-                        const computedMockTitleReference = mockRow.mock_name || mockRow.name || "Assessment Test";
+                const safeMocks = mockLogsData || [];
+                safeMocks.forEach(mockRow => {
+                    const rowPercentScore = mockRow.total > 0 ? Math.round((mockRow.score / mockRow.total) * 100) : 0;
+                    const performanceBadgeColorStyle = rowPercentScore >= 78 ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-indigo-100 text-indigo-700 border border-indigo-200";
+                    const computedMockTitleReference = mockRow.mock_name || mockRow.name || "Assessment Test";
 
-                        if(mockRow.user_name === activeUserNameText) {
-                            if(myMocksTableBody) {
-                                myMocksTableBody.innerHTML += `
-                                    <tr class="border-b border-[var(--border-ui)]">
-                                        <td class="py-2 px-2 font-bold">${computedMockTitleReference}</td>
-                                        <td class="py-2 px-2"><span class="px-1.5 py-0.5 bg-slate-200 rounded text-[10px] font-black">${mockRow.subject || 'Mock'}</span></td>
-                                        <td class="py-2 px-2 font-mono text-[10px] text-slate-400">QA:${mockRow.qa_score || 0}|GI:${mockRow.gi_score || 0}|EL:${mockRow.el_score || 0}|GA:${mockRow.ga_score || 0}</td>
-                                        <td class="py-2 px-2"><span class="px-2 py-0.5 rounded-lg text-xs font-black ${performanceBadgeColorStyle}">${mockRow.score}/${mockRow.total} (${rowPercentScore}%)</span></td>
-                                        <td class="py-2 px-2 text-right"><button onclick="executeRecordDeletionSequencePipeline('mock_tests', '${mockRow.id}')" class="text-rose-500 font-bold cursor-pointer text-[13px]">🗑️</button></td>
-                                    </tr>`;
-                            }
-                        } else {
-                            if(peerMocksTableBody) {
-                                peerMocksTableBody.innerHTML += `
-                                    <tr class="border-b border-[var(--border-ui)]">
-                                        <td class="py-2 px-2 font-bold">${computedMockTitleReference}</td>
-                                        <td class="py-2 px-2 font-semibold text-rose-500">${mockRow.user_name}</td>
-                                        <td class="py-2 px-2"><span class="px-1.5 py-0.5 bg-slate-200 rounded text-[10px] font-black">${mockRow.subject || 'Mock'}</span></td>
-                                        <td class="py-2 px-2 font-mono text-[10px] text-slate-400">QA:${mockRow.qa_score || 0}|GI:${mockRow.gi_score || 0}|EL:${mockRow.el_score || 0}|GA:${mockRow.ga_score || 0}</td>
-                                        <td class="py-2 px-2"><span class="px-2 py-0.5 rounded-lg text-xs font-black ${performanceBadgeColorStyle}">${mockRow.score}/${mockRow.total} (${rowPercentScore}%)</span></td>
-                                    </tr>`;
-                            }
+                    if(mockRow.user_name === activeUserNameText) {
+                        if(myMocksTableBody) {
+                            myMocksTableBody.innerHTML += `
+                                <tr class="border-b border-[var(--border-ui)]">
+                                    <td class="py-2 px-2 font-bold">${computedMockTitleReference}</td>
+                                    <td class="py-2 px-2"><span class="px-1.5 py-0.5 bg-slate-200 rounded text-[10px] font-black">${mockRow.subject || 'Mock'}</span></td>
+                                    <td class="py-2 px-2 font-mono text-[10px] text-slate-400">QA:${mockRow.qa_score || 0}|GI:${mockRow.gi_score || 0}|EL:${mockRow.el_score || 0}|GA:${mockRow.ga_score || 0}</td>
+                                    <td class="py-2 px-2"><span class="px-2 py-0.5 rounded-lg text-xs font-black ${performanceBadgeColorStyle}">${mockRow.score}/${mockRow.total} (${rowPercentScore}%)</span></td>
+                                    <td class="py-2 px-2 text-right"><button onclick="executeRecordDeletionSequencePipeline('mock_tests', '${mockRow.id}')" class="text-rose-500 font-bold cursor-pointer text-[13px]">🗑️</button></td>
+                                </tr>`;
                         }
-                    });
-                }
-                recomputeAndRenderDashboardCharts(studyLogsData || [], mockLogsData || []);
+                    } else {
+                        if(peerMocksTableBody) {
+                            peerMocksTableBody.innerHTML += `
+                                <tr class="border-b border-[var(--border-ui)]">
+                                    <td class="py-2 px-2 font-bold">${computedMockTitleReference}</td>
+                                    <td class="py-2 px-2 font-semibold text-rose-500">${mockRow.user_name}</td>
+                                    <td class="py-2 px-2"><span class="px-1.5 py-0.5 bg-slate-200 rounded text-[10px] font-black">${mockRow.subject || 'Mock'}</span></td>
+                                    <td class="py-2 px-2 font-mono text-[10px] text-slate-400">QA:${mockRow.qa_score || 0}|GI:${mockRow.gi_score || 0}|EL:${mockRow.el_score || 0}|GA:${mockRow.ga_score || 0}</td>
+                                    <td class="py-2 px-2"><span class="px-2 py-0.5 rounded-lg text-xs font-black ${performanceBadgeColorStyle}">${mockRow.score}/${mockRow.total} (${rowPercentScore}%)</span></td>
+                                </tr>`;
+                        }
+                    }
+                });
+                recomputeAndRenderDashboardCharts(safeSessions, safeMocks);
             } catch (error) { console.error("Master layout synchronization error:", error); }
         }
 
